@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- Source for assets/og.png (the link-preview thumbnail).
+     Render with:  node dev/shot.mjs dev/og.html assets/og.png 1200 630  -->
+<meta charset="utf-8">
+<style>
+  /* the glow bleeds past the body box; without this the capture widens to fit it */
+  html { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    margin: 0; width: 1200px; height: 630px; overflow: hidden; position: relative;
+    background: #0c0e0d; color: #d6dbd8;
+    font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(255,255,255,.022) 0 1px, transparent 1px 5px);
+  }
+  .glow {
+    position: absolute; left: 46%; top: -30%; width: 900px; height: 700px;
+    background: radial-gradient(closest-side, rgba(110,138,68,.18), transparent 70%);
+  }
+  .in { position: absolute; inset: 0; padding: 76px 80px; display: flex; flex-direction: column; }
+
+  h1 { margin: 0; font: 700 82px/1 sans-serif; letter-spacing: .06em; color: #eef2ef; }
+  h1 span { color: #565d5a; }
+  .season { margin-top: 16px; font: 500 17px/1 sans-serif; letter-spacing: .52em; color: #6e8a44; }
+  .tag { margin-top: 40px; font: 600 34px/1.35 sans-serif; color: #d6dbd8; }
+  .tag b { color: #a9c46c; font-weight: 600; }
+  .sub { margin-top: 14px; font-size: 20px; color: #7e8683; }
+
+  .chips { margin-top: auto; display: flex; gap: 12px; }
+  .chip {
+    padding: 12px 20px; border: 1px solid #414744; border-radius: 4px;
+    background: #161918; font: 600 18px/1 sans-serif; letter-spacing: .03em;
+  }
+  .chip.pos { color: #a9c46c; border-color: #3a462a; background: rgba(120,152,66,.10); }
+  .chip.neg { color: #d98b81; border-color: #4a302d; background: rgba(150,62,55,.10); }
+
+  .char { position: absolute; right: 64px; bottom: 0; height: 430px; }
+  .credit {
+    position: absolute; right: 80px; top: 76px; text-align: right;
+  }
+  .credit .name { font: 700 30px/1 sans-serif; color: #eef2ef; }
+  .credit .handle { margin-top: 10px; font-size: 16px; color: #565d5a; }
+</style>
+<div class="glow"></div>
+<img class="char" src="../assets/character.png" alt="">
+<div class="in">
+  <h1>KORD<span>·</span>BREACH</h1>
+  <div class="season">SEASON 1</div>
+  <div class="tag">모디파이어 <b>선택기</b></div>
+  <div class="sub">합계 0 이상이면 통과 · 36종 한글 번역</div>
+  <div class="chips">
+    <div class="chip neg">디버프 +34</div>
+    <div class="chip pos">퍽 −71</div>
+    <div class="chip">PASS / OVER BUDGET</div>
+  </div>
+</div>
+<div class="credit">
+  <div class="name">노잼망겜</div>
+  <div class="handle">@NoJamMangGame</div>
+</div>

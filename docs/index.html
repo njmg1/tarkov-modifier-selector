@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KORD BREACH 모디파이어 선택기 — 노잼망겜</title>
+<meta name="description" content="Escape from Tarkov · KORD BREACH 시즌 1 모디파이어(특성 퍽) 36종 한글 번역 및 조합 선택기. 합계가 0 이상이어야 통과.">
+
+<!-- Link previews need absolute URLs, so these are pinned to the Pages origin. -->
+<link rel="canonical" href="https://njmg1.github.io/tarkov-modifier-selector/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="노잼망겜">
+<meta property="og:url" content="https://njmg1.github.io/tarkov-modifier-selector/">
+<meta property="og:title" content="KORD BREACH 모디파이어 선택기">
+<meta property="og:description" content="시즌 1 모디파이어 36종 한글 번역 · 디버프로 포인트를 벌어 퍽에 쓰고, 합계 0 이상이면 통과.">
+<meta property="og:image" content="https://njmg1.github.io/tarkov-modifier-selector/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@NoJamMangGameTV">
+<meta name="twitter:image" content="https://njmg1.github.io/tarkov-modifier-selector/assets/og.png">
+<style>
+  :root {
+    --bg:          #0c0e0d;
+    --panel:       #161918;
+    --panel-2:     #1d211f;
+    --line:        #2b302e;
+    --line-hi:     #414744;
+    --text:        #d6dbd8;
+    --text-dim:    #7e8683;
+    --text-faint:  #565d5a;
+
+    --pos:         #a9c46c;
+    --pos-bg:      rgba(120, 152, 66, .10);
+    --pos-line:    #3a462a;
+    --pos-line-hi: #6e8a44;
+
+    --neg:         #d98b81;
+    --neg-bg:      rgba(150, 62, 55, .10);
+    --neg-line:    #4a302d;
+    --neg-line-hi: #8e4a43;
+
+    --ok:          #79cf8a;
+    --bad:         #e2584c;
+    --warn:        #d8b45f;
+
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+            "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 400 15px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 6rem;
+  }
+  /* faint diagonal hatch, echoing the in-game plate */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(255,255,255,.014) 0 1px, transparent 1px 4px);
+  }
+  .wrap {
+    position: relative; z-index: 1; max-width: 1500px; margin: 0 auto; padding: 0 20px;
+    display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 28px; align-items: start;
+  }
+  @media (max-width: 1080px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+
+  /* ------------------------------------------------------------ header */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: linear-gradient(var(--bg) 72%, rgba(12,14,13,.86));
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .head-in {
+    max-width: 1500px; margin: 0 auto; padding: 14px 20px;
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand b {
+    font: 700 20px/1 var(--sans); letter-spacing: .16em; color: #eef2ef;
+  }
+  .brand b span { color: var(--text-faint); }
+  .brand small { font-size: 10px; letter-spacing: .3em; color: var(--text-faint); }
+
+  /* ------------------------------------------------------------ meter */
+  .meter { flex: 1 1 380px; min-width: 300px; }
+  .meter-top {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px;
+    font: 500 12px/1 var(--sans); letter-spacing: .06em; color: var(--text-dim);
+  }
+  .balance {
+    font: 700 26px/1 var(--mono); letter-spacing: -.02em;
+    color: var(--ok); font-variant-numeric: tabular-nums;
+    transition: color .18s;
+  }
+  .balance.bad { color: var(--bad); }
+  .meter-top .sep { color: var(--text-faint); }
+  #meterDetail { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .bar {
+    position: relative; height: 8px; border-radius: 4px;
+    background: var(--panel-2); border: 1px solid var(--line); overflow: hidden;
+  }
+  .bar i {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, #5f8a44, var(--pos-line-hi));
+    transition: width .22s cubic-bezier(.4,0,.2,1), background .18s;
+  }
+  .bar.over i { background: linear-gradient(90deg, #8e4a43, var(--bad)); }
+
+  .verdict {
+    flex: 0 0 auto; align-self: center;
+    padding: 9px 18px; border-radius: 3px;
+    font: 700 13px/1 var(--sans); letter-spacing: .16em;
+    border: 1px solid; white-space: nowrap;
+  }
+  .verdict.ok  { color: var(--ok);  border-color: #2f5c3a; background: rgba(60,140,80,.12); }
+  .verdict.bad { color: var(--bad); border-color: #6b2b25; background: rgba(190,60,50,.12); }
+
+  /* ------------------------------------------------------------ controls */
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button.tool {
+    font: 500 12px/1 var(--sans); letter-spacing: .04em;
+    color: var(--text-dim); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 3px;
+    padding: 8px 12px; cursor: pointer; transition: .14s;
+  }
+  button.tool:hover { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
+  button.tool:active { transform: translateY(1px); }
+  button.tool[aria-pressed="true"] { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
+  button.tool:focus-visible, .card:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+
+  /* ------------------------------------------------------------ aside */
+  aside {
+    position: sticky; top: 96px; margin-top: 40px;
+    max-height: calc(100vh - 116px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+  }
+  @media (max-width: 1080px) {
+    aside { position: static; max-height: none; }
+    /* stacked above the content on phones — don't make people scroll past an
+       empty panel to reach the modifiers */
+    aside:has(.picks-empty) { display: none; }
+  }
+
+  .aside-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 14px; border-bottom: 1px solid var(--line);
+  }
+  .aside-head h2 {
+    margin: 0; font: 600 11px/1 var(--sans); letter-spacing: .22em; color: var(--text-dim);
+  }
+  .aside-head .count {
+    margin-left: auto; font: 500 11px/1 var(--mono); color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .picks { flex: 1; overflow-y: auto; padding: 6px; }
+  .picks-group + .picks-group { margin-top: 6px; }
+  .picks-group h3 {
+    margin: 0; padding: 8px 8px 6px;
+    font: 600 10px/1 var(--sans); letter-spacing: .18em; color: var(--text-faint);
+  }
+
+  .pick {
+    display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 9px;
+    width: 100%; padding: 7px 8px; border: 0; border-radius: 2px;
+    background: transparent; color: inherit; font: inherit; text-align: left;
+    cursor: pointer; transition: background .12s;
+  }
+  .pick:hover { background: var(--panel-2); }
+  .pick:focus-visible { outline: 2px solid #6e8a44; outline-offset: -2px; }
+  .pick .icon { grid-area: 1 / 1; width: 20px; height: 20px; }
+  .pick .nm {
+    grid-area: 1 / 2;
+    font-size: 12px; letter-spacing: .03em; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* .v and .x share the last cell — both need explicit placement, or the
+     auto-placer skips the occupied cell and wraps .v onto a second row. */
+  .pick .v {
+    grid-area: 1 / 3; justify-self: end;
+    font: 700 11px/1 var(--mono); font-variant-numeric: tabular-nums;
+  }
+  .pick .x {
+    grid-area: 1 / 3; justify-self: end;
+    font: 700 13px/1 var(--sans); color: var(--text-dim); visibility: hidden;
+  }
+  .pick.positive .v { color: var(--pos); }
+  .pick.negative .v { color: var(--neg); }
+  .pick.positive .icon { background-color: var(--pos); }
+  .pick.negative .icon { background-color: var(--neg); }
+  /* the value swaps to a × on hover — the row is a remove button */
+  .pick:hover .v { visibility: hidden; }
+  .pick:hover .x { visibility: visible; }
+
+  .picks-empty {
+    padding: 22px 12px; text-align: center; color: var(--text-faint);
+    font-size: 12px; line-height: 1.6; white-space: pre-line;
+  }
+
+  .aside-foot {
+    border-top: 1px solid var(--line); padding: 11px 14px;
+    display: grid; gap: 5px;
+    font: 500 12px/1 var(--sans); color: var(--text-dim);
+  }
+  .aside-foot div { display: flex; justify-content: space-between; align-items: baseline; }
+  .aside-foot span:last-child { font: 600 12px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .aside-foot .gain span:last-child { color: var(--neg); }
+  .aside-foot .cost span:last-child { color: var(--pos); }
+  .aside-foot .left {
+    margin-top: 3px; padding-top: 8px; border-top: 1px dashed var(--line);
+    color: var(--text);
+  }
+  .aside-foot .left span:last-child { font-size: 15px; color: var(--ok); }
+  .aside-foot .left.bad span:last-child { color: var(--bad); }
+
+  /* ------------------------------------------------------------ promo */
+  .promo {
+    position: relative; overflow: hidden;
+    margin-top: 40px; border: 1px solid var(--line); border-radius: 3px;
+    background: #14181a;
+    display: flex; align-items: flex-end; gap: 20px; padding-right: 20px;
+  }
+  .promo::before {  /* same hatch as the in-game plate */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(255,255,255,.02) 0 1px, transparent 1px 5px);
+  }
+  .promo-char {
+    flex: 0 0 auto; height: 150px; width: auto; display: block;
+    margin-bottom: -1px; image-rendering: -webkit-optimize-contrast;
+  }
+  .promo-body { position: relative; padding: 18px 0 18px; min-width: 0; }
+  .promo-kicker {
+    font: 500 12px/1.4 var(--sans); letter-spacing: .04em; color: var(--text-dim);
+  }
+  .promo-name {
+    margin: 5px 0 3px;
+    font: 700 21px/1.2 var(--sans); letter-spacing: .02em; color: #eef2ef;
+  }
+  .promo-name span {
+    font: 500 12px/1 var(--mono); letter-spacing: .06em; color: var(--text-faint);
+    margin-left: 9px;
+  }
+  .promo-note { font-size: 11px; color: var(--text-faint); margin-bottom: 11px; }
+  .promo-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .promo-links a {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 13px; border-radius: 3px; text-decoration: none;
+    font: 600 12px/1 var(--sans); letter-spacing: .04em;
+    border: 1px solid var(--line-hi); color: var(--text);
+    background: var(--panel); transition: .14s;
+  }
+  .promo-links a:hover { background: var(--panel-2); border-color: #5c6360; }
+  .promo-links a:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  .promo-links svg { width: 15px; height: 15px; fill: currentColor; flex: 0 0 auto; }
+  .promo-links .yt:hover { border-color: #d0483c; color: #ef6a5e; }
+
+  @media (max-width: 620px) {
+    .promo { flex-direction: column; align-items: stretch; gap: 0; padding: 0 18px 18px; }
+    .promo-char { height: 128px; align-self: flex-start; margin: 8px 0 -1px -8px; }
+    .promo-body { padding-top: 4px; }
+  }
+
+  /* ------------------------------------------------------------ sections */
+  section { margin-top: 40px; }
+  .sec-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  }
+  .sec-head h2 {
+    margin: 0; font: 600 12px/1 var(--sans); letter-spacing: .28em; color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .sec-head .sec-ko {
+    font: 500 12px/1 var(--sans); color: var(--text-faint); white-space: nowrap;
+  }
+  .sec-head .rule { flex: 1; height: 1px; background: var(--line); }
+  .sec-head .tally {
+    font: 500 12px/1 var(--mono); color: var(--text-faint); font-variant-numeric: tabular-nums;
+  }
+
+  /* the aside eats 292px, so let the columns find their own count */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+  @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ------------------------------------------------------------ card */
+  .card {
+    display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px;
+    width: 100%; text-align: left; min-height: 92px;
+    padding: 12px 14px 12px 8px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+    color: inherit; font: inherit; cursor: pointer;
+    transition: background .14s, border-color .14s, transform .08s;
+    position: relative; overflow: hidden;
+  }
+  .card::after {  /* selected accent stripe */
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: transparent; transition: background .14s;
+  }
+  .card:hover { border-color: var(--line-hi); }
+  .card:active { transform: translateY(1px); }
+
+  .card.global { cursor: default; opacity: .85; }
+  .card.global:hover { border-color: var(--line); }
+  .card.global:active { transform: none; }
+
+  .card.positive { background: var(--pos-bg); border-color: var(--pos-line); }
+  .card.positive:hover { border-color: var(--pos-line-hi); }
+  .card.negative { background: var(--neg-bg); border-color: var(--neg-line); }
+  .card.negative:hover { border-color: var(--neg-line-hi); }
+
+  .card.on.positive { background: rgba(120,152,66,.22); border-color: var(--pos-line-hi); }
+  .card.on.positive::after { background: var(--pos); }
+  .card.on.negative { background: rgba(150,62,55,.22); border-color: var(--neg-line-hi); }
+  .card.on.negative::after { background: var(--neg); }
+
+  /* a perk you cannot currently afford — still clickable, just flagged */
+  .card.unaffordable:not(.on) { opacity: .48; }
+  .card.unaffordable:not(.on) .val { color: var(--warn); }
+  .card.unaffordable:not(.on):hover { opacity: .8; }
+
+  /* Longhands, not the `mask:` shorthand — the shorthand plus var() is the
+     shakier path across engines, and we gain nothing from it here. */
+  .icon {
+    width: 56px; height: 56px; justify-self: center;
+    background-color: var(--text-faint);
+    -webkit-mask-image: var(--ic);        mask-image: var(--ic);
+    -webkit-mask-size: contain;           mask-size: contain;
+    -webkit-mask-repeat: no-repeat;       mask-repeat: no-repeat;
+    -webkit-mask-position: center;        mask-position: center;
+    transition: background-color .14s;
+  }
+  .card:hover .icon { background-color: var(--text-dim); }
+  .card.on.positive .icon { background-color: var(--pos); }
+  .card.on.negative .icon { background-color: var(--neg); }
+  .card.global .icon { background-color: var(--text-dim); }
+
+  .body { min-width: 0; }
+  .title {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px;
+  }
+  .title h3 {
+    margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e7ebe8;
+  }
+  .ko-name {
+    font-size: 12px; line-height: 1.25; color: var(--text-faint); white-space: nowrap;
+  }
+  body.lang-en .ko-name { display: none; }
+  .val {
+    font: 700 13px/1 var(--mono); font-variant-numeric: tabular-nums;
+    margin-left: auto; flex: 0 0 auto; padding-left: 8px;
+  }
+  .card.positive .val { color: var(--pos); }
+  .card.negative .val { color: var(--neg); }
+
+  ul.desc { margin: 0; padding: 0; list-style: none; }
+  ul.desc li {
+    font-size: 12.5px; line-height: 1.45; color: var(--text-dim);
+    padding-left: 11px; position: relative;
+  }
+  ul.desc li::before {
+    content: "·"; position: absolute; left: 2px; color: var(--text-faint);
+  }
+  .ko {
+    margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b9c0bc;
+  }
+  .ko .trunc {
+    color: var(--warn); cursor: help; font-weight: 600;
+  }
+
+  body.lang-en .ko { display: none; }
+  body.lang-ko ul.desc { display: none; }
+
+  .empty {
+    grid-column: 1 / -1; padding: 28px; text-align: center;
+    color: var(--text-faint); font-size: 13px;
+    border: 1px dashed var(--line); border-radius: 3px;
+  }
+
+  footer {
+    grid-column: 1 / -1;
+    margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--text-faint); font-size: 12px; line-height: 1.7;
+  }
+  footer code { font: 11px/1 var(--mono); color: var(--text-dim); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+    background: var(--panel-2); border: 1px solid var(--line-hi); border-radius: 3px;
+    padding: 10px 18px; font-size: 13px; color: var(--text);
+    opacity: 0; pointer-events: none; transition: .2s; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body class="lang-ko">
+
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <b>KORD<span>·</span>BREACH</b>
+      <small>SEASON 1</small>
+    </div>
+
+    <div class="meter">
+      <div class="meter-top">
+        <span id="balance" class="balance">0</span>
+        <span>잔여 포인트</span>
+        <span class="sep">/</span>
+        <span id="meterDetail">디버프 0 · 퍽 0</span>
+      </div>
+      <div class="bar" id="bar"><i id="barFill"></i></div>
+    </div>
+
+    <div id="verdict" class="verdict ok">PASS</div>
+
+    <div class="tools">
+      <button class="tool" id="langBtn" aria-pressed="true">한/EN</button>
+      <button class="tool" id="onlyBtn" aria-pressed="false">선택만</button>
+      <button class="tool" id="shotBtn">이미지 저장</button>
+      <button class="tool" id="shareBtn">링크 복사</button>
+      <button class="tool" id="resetBtn">초기화</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <div class="aside-head">
+      <h2>선택 목록</h2>
+      <span class="count" id="pickCount">0 / 30</span>
+    </div>
+    <div class="picks" id="picks"></div>
+    <div class="aside-foot">
+      <div class="gain"><span>디버프로 획득</span><span id="fGain">+0</span></div>
+      <div class="cost"><span>퍽에 사용</span><span id="fCost">−0</span></div>
+      <div class="left" id="fLeftRow"><span>잔여 포인트</span><span id="fLeft">0</span></div>
+    </div>
+  </aside>
+
+  <main>
+  <div class="promo">
+    <img class="promo-char" id="promoChar" alt="노잼망겜 캐릭터" width="249" height="235">
+    <div class="promo-body">
+      <div class="promo-kicker">시즌 캐릭터 모디파이어 (특성 퍽) 번역</div>
+      <div class="promo-name">노잼망겜 <span>NoJamMangGameTV</span></div>
+      <div class="promo-note">공식 한글화 번역 아님</div>
+      <div class="promo-links">
+        <a class="yt" href="https://www.youtube.com/@NoJamMangGame" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+          YouTube
+        </a>
+        <a href="https://x.com/NoJamMangGameTV" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.81-5.96 6.81H1.69l7.73-8.84L1.27 2.25h6.82l4.71 6.23 5.44-6.23zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64z"/></svg>
+          X (Twitter)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <section id="sec-global">
+    <div class="sec-head">
+      <h2>GLOBAL MODIFIERS</h2><span class="sec-ko">공통 적용 사항</span><span class="rule"></span>
+      <span class="tally">항상 적용 · 비용 없음</span>
+    </div>
+    <div class="grid" id="grid-global"></div>
+  </section>
+
+  <section id="sec-positive">
+    <div class="sec-head">
+      <h2>PERSONAL POSITIVE</h2><span class="sec-ko">선택 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tally-positive"></span>
+    </div>
+    <div class="grid" id="grid-positive"></div>
+  </section>
+
+  <section id="sec-negative">
+    <div class="sec-head">
+      <h2>PERSONAL NEGATIVE</h2><span class="sec-ko">선택 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tally-negative"></span>
+    </div>
+    <div class="grid" id="grid-negative"></div>
+  </section>
+  </main>
+
+  <footer>
+    합계가 <b>0 이상</b>이면 통과. 디버프(+)를 켜서 포인트를 벌고, 퍽(−)에 씁니다.
+    모든 디버프를 켜도 포인트는 <b>+34</b>, 모든 퍽의 총 비용은 <b>−71</b>입니다.<br>
+    <span style="color:var(--warn)">◆</span> 표시된 한글 번역은 원본 이미지가 잘려서 문장이 끊겼습니다 — 마우스를 올리면 설명이 나옵니다.<br>
+    선택 상태는 브라우저에 저장되고 URL <code>#b=…</code> 로도 공유됩니다.
+    수치는 시즌 시작 전 변경될 수 있습니다.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script src="char.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  document.getElementById('promoChar').src = CHARACTER_URI;
+
+  const CATS = ['global', 'positive', 'negative'];
+  const BY_CAT = Object.fromEntries(CATS.map(c => [c, MODIFIERS.filter(m => m.cat === c)]));
+  const SELECTABLE = MODIFIERS.filter(m => m.value !== null);
+  const BUDGET_MAX = BY_CAT.negative.reduce((s, m) => s + m.value, 0);   // +34
+
+  const STORE_KEY = 'kord-breach-selection';
+  const selected = new Set();
+
+  // ---------------------------------------------------------------- state io
+  // Selection is a bitmask over ids 7..36, base36-encoded. Fits in a Number
+  // (30 bits), so no BigInt needed.
+  const BIT0 = 7;
+  const encode = () => {
+    let n = 0;
+    for (const id of selected) n |= 1 << (id - BIT0);
+    return n.toString(36);
+  };
+  const decode = (s) => {
+    const n = parseInt(s, 36);
+    if (!Number.isFinite(n) || n < 0) return null;
+    const out = new Set();
+    for (const m of SELECTABLE) if (n & (1 << (m.id - BIT0))) out.add(m.id);
+    return out;
+  };
+
+  // Safari throws on localStorage from file:// (opaque origin), so never let
+  // persistence failure take the whole app down with it.
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* no-op */ } },
+  };
+
+  function load() {
+    const hash = new URLSearchParams(location.hash.slice(1)).get('b');
+    const from = hash ?? store.get(STORE_KEY);
+    if (!from) return;
+    const s = decode(from);
+    if (s) s.forEach(id => selected.add(id));
+  }
+  function save() {
+    const code = encode();
+    store.set(STORE_KEY, code);
+    try {
+      history.replaceState(null, '', code === '0' ? location.pathname : `#b=${code}`);
+    } catch { /* some browsers refuse replaceState on file:// */ }
+  }
+  // location.origin is the string "null" on file://, so build from href instead.
+  const shareUrl = () => `${location.href.split('#')[0]}#b=${encode()}`;
+
+  // ---------------------------------------------------------------- render
+  const el = (tag, cls, txt) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  };
+  const fmt = (v) => (v > 0 ? `+${v}` : `${v}`);
+
+  const cards = new Map();   // id -> element
+
+  function buildCard(m) {
+    const isGlobal = m.cat === 'global';
+    const node = el(isGlobal ? 'div' : 'button', `card ${m.cat}`);
+    if (!isGlobal) {
+      node.type = 'button';
+      node.setAttribute('aria-pressed', 'false');
+    }
+
+    const icon = el('div', 'icon');
+    icon.style.setProperty('--ic', `url("${ICON_URI[m.id]}")`);
+    node.append(icon);
+
+    const body = el('div', 'body');
+    const title = el('div', 'title');
+    title.append(el('h3', null, m.name), el('span', 'ko-name', m.koName));
+    if (m.value !== null) title.append(el('span', 'val', fmt(m.value)));
+    body.append(title);
+
+    const ul = el('ul', 'desc');
+    m.en.forEach(line => ul.append(el('li', null, line)));
+    body.append(ul);
+
+    const ko = el('div', 'ko');
+    ko.textContent = m.ko.join(' / ');
+    if (m.koTruncated) {
+      const mark = el('span', 'trunc', ' ◆');
+      mark.title = m.koNote;
+      ko.append(mark);
+    }
+    body.append(ko);
+
+    node.append(body);
+    if (!isGlobal) node.addEventListener('click', () => toggle(m.id));
+    cards.set(m.id, node);
+    return node;
+  }
+
+  for (const c of CATS) {
+    const grid = document.getElementById(`grid-${c}`);
+    BY_CAT[c].forEach(m => grid.append(buildCard(m)));
+    grid.append(Object.assign(el('div', 'empty', '선택한 항목이 없습니다'), { hidden: true }));
+  }
+
+  // ---------------------------------------------------------------- aside
+  const $picks = document.getElementById('picks');
+
+  function buildPick(m) {
+    const row = el('button', `pick ${m.cat}`);
+    row.type = 'button';
+    row.title = `${m.name} — 클릭하면 해제`;
+
+    const icon = el('div', 'icon');
+    icon.style.setProperty('--ic', `url("${ICON_URI[m.id]}")`);
+
+    row.append(icon, el('span', 'nm', m.koName), el('span', 'v', fmt(m.value)), el('span', 'x', '×'));
+    row.addEventListener('click', () => toggle(m.id));
+    return row;
+  }
+
+  function renderPicks() {
+    $picks.replaceChildren();
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+
+    if (!picked.length) {
+      $picks.append(el('div', 'picks-empty',
+        '아직 아무것도 선택하지 않았습니다.\n디버프를 켜서 포인트를 버세요.'));
+      return;
+    }
+    for (const [cat, label] of [['negative', '디버프 (부정적 효과) — 포인트 획득'],
+                                ['positive', '퍽 (긍정적 효과) — 포인트 소모']]) {
+      const rows = picked.filter(m => m.cat === cat);
+      if (!rows.length) continue;
+      const group = el('div', 'picks-group');
+      group.append(el('h3', null, label));
+      rows.forEach(m => group.append(buildPick(m)));
+      $picks.append(group);
+    }
+  }
+
+  // ---------------------------------------------------------------- logic
+  const $balance = document.getElementById('balance');
+  const $detail  = document.getElementById('meterDetail');
+  const $verdict = document.getElementById('verdict');
+  const $bar     = document.getElementById('bar');
+  const $fill    = document.getElementById('barFill');
+  let onlyMode = false;
+
+  function toggle(id) {
+    selected.has(id) ? selected.delete(id) : selected.add(id);
+    save();
+    render();
+  }
+
+  function render() {
+    let gain = 0, cost = 0;
+    for (const m of SELECTABLE) {
+      if (!selected.has(m.id)) continue;
+      if (m.value > 0) gain += m.value; else cost += -m.value;
+    }
+    const balance = gain - cost;
+    const pass = balance >= 0;
+
+    $balance.textContent = fmt(balance).replace('+', '');
+    $balance.classList.toggle('bad', !pass);
+    $detail.textContent = `디버프 +${gain} · 퍽 −${cost}`;
+    $verdict.textContent = pass ? 'PASS' : 'OVER BUDGET';
+    $verdict.className = `verdict ${pass ? 'ok' : 'bad'}`;
+
+    renderPicks();
+    const nPicked = SELECTABLE.filter(m => selected.has(m.id)).length;
+    document.getElementById('pickCount').textContent = `${nPicked} / ${SELECTABLE.length}`;
+    document.getElementById('fGain').textContent = `+${gain}`;
+    document.getElementById('fCost').textContent = `−${cost}`;
+    document.getElementById('fLeft').textContent = fmt(balance).replace('+', '');
+    document.getElementById('fLeftRow').classList.toggle('bad', !pass);
+
+    // bar shows spend against what you've actually unlocked, capped visually
+    const denom = Math.max(gain, cost, 1);
+    $fill.style.width = `${Math.min(100, (cost / denom) * 100)}%`;
+    $bar.classList.toggle('over', !pass);
+
+    for (const m of SELECTABLE) {
+      const node = cards.get(m.id);
+      const on = selected.has(m.id);
+      node.classList.toggle('on', on);
+      node.setAttribute('aria-pressed', String(on));
+      // a perk is "unaffordable" if taking it would push you below zero
+      const cannot = m.value < 0 && !on && balance + m.value < 0;
+      node.classList.toggle('unaffordable', cannot);
+      node.hidden = onlyMode && !on;
+    }
+
+    for (const c of ['positive', 'negative']) {
+      const list = BY_CAT[c];
+      const n = list.filter(m => selected.has(m.id)).length;
+      const sum = list.filter(m => selected.has(m.id)).reduce((s, m) => s + m.value, 0);
+      document.getElementById(`tally-${c}`).textContent =
+        `${n}/${list.length} 선택 · ${fmt(sum)}`;
+      const grid = document.getElementById(`grid-${c}`);
+      grid.querySelector('.empty').hidden = !(onlyMode && n === 0);
+    }
+    document.getElementById('sec-global').hidden = onlyMode;
+  }
+
+  // ------------------------------------------------------------ share image
+  // Painted straight onto a canvas rather than rasterising the DOM. No external
+  // library to load, nothing that can taint the canvas (every image here is a
+  // data URI), and the output does not drift with the page's CSS.
+  const imgCache = new Map();
+  const loadImg = (uri) => {
+    if (!imgCache.has(uri)) imgCache.set(uri, new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error('image decode failed'));
+      im.src = uri;
+    }));
+    return imgCache.get(uri);
+  };
+
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  // icons ship as white + alpha; recolour by compositing a fill through them
+  function tinted(img, color, size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0, size, size);
+    x.globalCompositeOperation = 'source-in';
+    x.fillStyle = color;
+    x.fillRect(0, 0, size, size);
+    return c;
+  }
+
+  const SANS = getComputedStyle(document.body).fontFamily;
+  const MONO = cssVar('--mono');
+
+  // greedy wrap, capped — a runaway description shouldn't stretch the card
+  function wrapText(c, text, maxW, maxLines = 2) {
+    const words = text.split(' ');
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const next = cur ? `${cur} ${w}` : w;
+      if (!cur || c.measureText(next).width <= maxW) { cur = next; continue; }
+      lines.push(cur);
+      cur = w;
+      if (lines.length === maxLines) break;
+    }
+    if (lines.length < maxLines && cur) lines.push(cur);
+    if (lines.length === maxLines) {
+      let last = lines[maxLines - 1];
+      const rest = words.slice(lines.join(' ').split(' ').length).length;
+      if (rest > 0 || c.measureText(last).width > maxW) {
+        while (last.length > 1 && c.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+        lines[maxLines - 1] = last + '…';
+      }
+    }
+    return lines;
+  }
+
+  async function renderShareImage(scale = 2) {
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const gain = picked.reduce((s, m) => s + (m.value > 0 ? m.value : 0), 0);
+    const cost = picked.reduce((s, m) => s - (m.value < 0 ? m.value : 0), 0);
+    const balance = gain - cost;
+    const pass = balance >= 0;
+
+    const groups = [
+      ['negative', '디버프 (부정적 효과) — 포인트 획득', cssVar('--neg')],
+      ['positive', '퍽 (긍정적 효과) — 포인트 소모', cssVar('--pos')],
+    ].map(([cat, label, color]) => ({ cat, label, color, rows: picked.filter(m => m.cat === cat) }))
+     .filter(g => g.rows.length);
+
+    const W = 860, PAD = 30, GHEAD = 36, HEAD = 92, SUM = 62, FOOT = 82;
+    const TEXT_X = PAD + 44;                  // right of the icon
+    const DESC_W = W - TEXT_X - PAD - 64;     // leave room for the value column
+
+    const cv = document.createElement('canvas');
+    const c = cv.getContext('2d');
+
+    // pass 1 — wrap every description so we know how tall the card has to be
+    c.font = `400 12px ${SANS}`;
+    for (const g of groups) {
+      for (const m of g.rows) {
+        m._lines = wrapText(c, m.ko.join(' / ') + (m.koTruncated ? '…' : ''), DESC_W);
+        m._h = 26 + m._lines.length * 17 + 12;
+      }
+    }
+    const body = groups.reduce(
+      (h, g) => h + GHEAD + g.rows.reduce((s, m) => s + m._h, 0) + 10, 0);
+    const H = HEAD + SUM + body + FOOT;
+
+    // pass 2 — draw. Sizing the canvas resets its context, so scale after.
+    cv.width = W * scale;
+    cv.height = H * scale;
+    c.scale(scale, scale);
+    c.textBaseline = 'middle';
+
+    // plate + hatch
+    c.fillStyle = cssVar('--bg');
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,.02)';
+    c.lineWidth = 1;
+    for (let i = -H; i < W; i += 5) {
+      c.beginPath(); c.moveTo(i, 0); c.lineTo(i + H, H); c.stroke();
+    }
+
+    // ---- header
+    let y = 38;
+    c.fillStyle = '#eef2ef';
+    c.font = `700 23px ${SANS}`;
+    c.fillText('KORD BREACH', PAD, y);
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `500 10px ${SANS}`;
+    c.fillText('S E A S O N   1', PAD + 2, y + 22);
+
+    // verdict badge, right aligned
+    const badge = pass ? 'PASS' : 'OVER BUDGET';
+    c.font = `700 13px ${SANS}`;
+    const bw = c.measureText(badge).width + 34;
+    const bx = W - PAD - bw;
+    c.fillStyle = pass ? 'rgba(60,140,80,.14)' : 'rgba(190,60,50,.14)';
+    c.strokeStyle = pass ? '#2f5c3a' : '#6b2b25';
+    c.beginPath(); c.roundRect(bx, y - 17, bw, 34, 3); c.fill(); c.stroke();
+    c.fillStyle = pass ? cssVar('--ok') : cssVar('--bad');
+    c.textAlign = 'center';
+    c.fillText(badge, bx + bw / 2, y + 1);
+    c.textAlign = 'left';
+
+    // ---- summary strip
+    y = HEAD;
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(PAD, y); c.lineTo(W - PAD, y); c.stroke();
+
+    const cy = y + SUM / 2;
+    const stat = (label, value, color, x) => {
+      c.fillStyle = cssVar('--text-dim');
+      c.font = `500 12px ${SANS}`;
+      c.fillText(label, x, cy - 9);
+      c.fillStyle = color;
+      c.font = `700 19px ${MONO}`;
+      c.fillText(value, x, cy + 11);
+    };
+    stat('디버프로 획득', `+${gain}`, cssVar('--neg'), PAD);
+    stat('퍽에 사용', `−${cost}`, cssVar('--pos'), PAD + 150);
+    stat('잔여 포인트', `${balance}`, pass ? cssVar('--ok') : cssVar('--bad'), PAD + 290);
+
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `500 12px ${SANS}`;
+    c.textAlign = 'right';
+    c.fillText(`${picked.length} / ${SELECTABLE.length} 선택`, W - PAD, cy);
+    c.textAlign = 'left';
+
+    y += SUM;
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(PAD, y); c.lineTo(W - PAD, y); c.stroke();
+
+    // ---- groups
+    for (const g of groups) {
+      y += GHEAD;
+      c.fillStyle = cssVar('--text-faint');
+      c.font = `600 11px ${SANS}`;
+      c.fillText(g.label, PAD, y - 14);
+
+      for (const m of g.rows) {
+        const top = y;
+        const img = await loadImg(ICON_URI[m.id]);
+        c.drawImage(tinted(img, g.color, 30 * scale), PAD, top + 6, 30, 30);
+
+        c.fillStyle = '#e7ebe8';
+        c.font = `600 14px ${SANS}`;
+        c.fillText(m.koName, TEXT_X, top + 14);
+        const kw = c.measureText(m.koName).width;
+
+        c.fillStyle = cssVar('--text-faint');
+        c.font = `400 11px ${SANS}`;
+        c.fillText(m.name, TEXT_X + kw + 9, top + 15);
+
+        c.fillStyle = cssVar('--text-dim');
+        c.font = `400 12px ${SANS}`;
+        m._lines.forEach((line, i) => c.fillText(line, TEXT_X, top + 34 + i * 17));
+
+        c.fillStyle = g.color;
+        c.font = `700 14px ${MONO}`;
+        c.textAlign = 'right';
+        c.fillText(fmt(m.value), W - PAD, top + 14);
+        c.textAlign = 'left';
+
+        y = top + m._h;
+        if (m !== g.rows[g.rows.length - 1]) {
+          c.strokeStyle = 'rgba(255,255,255,.04)';
+          c.beginPath(); c.moveTo(TEXT_X, y - 5); c.lineTo(W - PAD, y - 5); c.stroke();
+        }
+      }
+      y += 10;
+    }
+
+    // ---- footer: channel plug
+    const fy = H - FOOT;
+    c.fillStyle = '#14181a';
+    c.fillRect(0, fy, W, FOOT);
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(0, fy + .5); c.lineTo(W, fy + .5); c.stroke();
+
+    const chr = await loadImg(CHARACTER_URI);
+    const ch = 68, cw = chr.width / chr.height * ch;
+    c.drawImage(chr, PAD, H - ch, cw, ch);
+
+    const tx = PAD + cw + 16;
+    c.fillStyle = '#eef2ef';
+    c.font = `700 17px ${SANS}`;
+    c.fillText('노잼망겜', tx, fy + 30);
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `400 12px ${SANS}`;
+    c.fillText('youtube.com/@NoJamMangGame   ·   x.com/NoJamMangGameTV', tx, fy + 53);
+
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `400 11px ${SANS}`;
+    c.textAlign = 'right';
+    c.fillText('공식 한글화 번역 아님', W - PAD, fy + 30);
+    c.fillText(`글로벌 모디파이어 ${BY_CAT.global.length}종은 항상 적용`, W - PAD, fy + 50);
+    c.textAlign = 'left';
+
+    return cv;
+  }
+  window.__renderShareImage = renderShareImage;   // dev/test.html hook
+
+  // ---------------------------------------------------------------- toolbar
+  const $toast = document.getElementById('toast');
+  let toastTimer;
+  function toast(msg) {
+    $toast.textContent = msg;
+    $toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $toast.classList.remove('show'), 1800);
+  }
+
+  document.getElementById('langBtn').addEventListener('click', (e) => {
+    const ko = document.body.classList.toggle('lang-ko');
+    document.body.classList.toggle('lang-en', !ko);
+    e.currentTarget.setAttribute('aria-pressed', String(ko));
+  });
+
+  document.getElementById('onlyBtn').addEventListener('click', (e) => {
+    onlyMode = !onlyMode;
+    e.currentTarget.setAttribute('aria-pressed', String(onlyMode));
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    selected.clear();
+    save();
+    render();
+    toast('초기화됨');
+  });
+
+  document.getElementById('shotBtn').addEventListener('click', async (e) => {
+    if (!selected.size) return toast('먼저 모디파이어를 선택하세요');
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    try {
+      const cv = await renderShareImage();
+      const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), {
+        href: url, download: `kord-breach-${encode()}.png`,
+      });
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('이미지를 저장했습니다');
+    } catch (err) {
+      toast('이미지 생성 실패: ' + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('shareBtn').addEventListener('click', async () => {
+    const url = shareUrl();
+    try {
+      await navigator.clipboard.writeText(url);   // absent on file:// / http://
+      toast('링크가 복사됨');
+    } catch {
+      prompt('아래 주소를 복사하세요', url);
+    }
+  });
+
+  addEventListener('hashchange', () => {
+    const code = new URLSearchParams(location.hash.slice(1)).get('b');
+    const s = code && decode(code);
+    if (!s) return;
+    selected.clear();
+    s.forEach(id => selected.add(id));
+    render();
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>

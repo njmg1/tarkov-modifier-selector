@@ -13,9 +13,8 @@
 // Total cost if every perk is taken:       -71
 // => you can never take everything. That is the whole game.
 //
-// koTruncated: the source PNG was cropped at 545px / 790px and clipped the
-// Korean overlay mid-sentence. The text below is verbatim from the image;
-// the missing tail is noted in `koNote`. Fix by re-cropping the original.
+// Three source PNGs were cropped mid-sentence (09/28/32); their Korean lines
+// were completed by the translator rather than read off the image.
 
 //
 // koName is a translation of the modifier's TITLE. Unlike `ko` (the body text),
@@ -51,8 +50,7 @@ const MODIFIERS = [
     ko: ['기계식 열쇠가 20% 확률로 내구도 (사용 횟수)가 소모되지 않는다'] },
   { id: 9, cat: 'positive', name: 'BUSHBORNE', koName: '부시본 (하이드 온 부쉬)', value: -5,
     en: ['Walking in vegetation generates 50% less noise and movement slowdown'],
-    ko: ['나무 식생 안에서 걸을 때 소리와 이동 속도 감소가 50% 줄'],
-    koTruncated: true, koNote: '원본 PNG가 545px에서 잘림 — "…50% 줄어듦" 정도로 추정' },
+    ko: ['나무 식생 안에서 걸을 때 소리와 이동 속도 감소가 50% 줄어듦'] },
   { id: 10, cat: 'positive', name: 'JUICE TIME', koName: '주스 타임', value: -2,
     en: ['Consuming a juice drink grants the Painkiller effect for 60 seconds'],
     ko: ['쥬스 마시면 60초간 진통제 효과'] },
@@ -111,8 +109,7 @@ const MODIFIERS = [
     ko: ['모든 치료템이 용량을 25% 더 소모함'] },
   { id: 28, cat: 'negative', name: 'INCOMPETENT', koName: '무능', value: 4,
     en: ['All character skills are leveled 25% slower (Excluding Bolt-action Rifles)', 'All character skills can only be increased up to level 30 (Excluding Crafting)'],
-    ko: ['모든 스킬 레벨업 속도 25% 감소 (볼트 액션 제외), 최대 30레벨 까지만 올라감 (크래프팅 제외'],
-    koTruncated: true, koNote: '원본 PNG가 790px에서 잘림 — 닫는 괄호 ")" 누락' },
+    ko: ['모든 스킬 레벨업 속도 25% 감소 (볼트 액션 제외), 최대 30레벨 까지만 올라감 (크래프팅 제외)'] },
   { id: 29, cat: 'negative', name: 'POLYDIPSIA', koName: '다갈증', value: 1,
     en: ['Hydration is consumed 15% faster'],
     ko: ['수분 소모 속도 15% 빨라짐'] },
@@ -124,8 +121,7 @@ const MODIFIERS = [
     ko: ['카리스마 스킬이 오르지 않음. 모든 상인 아이템 가격 20% 증가(!)'] },
   { id: 32, cat: 'negative', name: 'DR. JEKYLL', koName: '지킬박사', value: 1,
     en: ['After gaining the Fresh Wound status, it cannot be removed until the end of the raid'],
-    ko: ['Fresh wound 상태 (과다출혈 치료시 디버프, 재출혈 확률 있'],
-    koTruncated: true, koNote: '원본 PNG가 545px에서 잘림 — "…있음)를 얻으면 레이드가 끝날 때까지 사라지지 않음" 정도로 추정' },
+    ko: ['Fresh wound 상태 (과다출혈 치료시 생기는 디버프, 재출혈 확률 있음)'] },
   { id: 33, cat: 'negative', name: 'ALLERGIC', koName: '알레르기', value: 3,
     en: ['Become allergic to 2 random items from the Provisions or Medication category'],
     ko: ['식량 혹은 치료아이템 카테고리에서 랜덤하게 아이템 2개에 알레르기 생김 (!)'] },

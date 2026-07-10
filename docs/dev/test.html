@@ -100,7 +100,7 @@ window.addEventListener('load', async () => {
   chk(document.querySelectorAll('.ko .trunc').length === 0, 'no truncation markers left');
   chk(/50% 줄어듦$/.test(cardByName('BUSHBORNE').querySelector('.ko').textContent), 'bushborne ko complete');
   chk(/\(크래프팅 제외\)$/.test(cardByName('INCOMPETENT').querySelector('.ko').textContent), 'incompetent ko complete');
-  chk(/확률 있음\)$/.test(cardByName('DR. JEKYLL').querySelector('.ko').textContent), 'dr jekyll ko complete');
+  chk(/생기는 디버프\)$/.test(cardByName('DR. JEKYLL').querySelector('.ko').textContent), 'dr jekyll ko complete');
 
   // korean titles beside the english ones
   chk(document.querySelectorAll('.ko-name').length === 36, '36 korean titles');

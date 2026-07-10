@@ -123,7 +123,7 @@ const MODIFIERS = [
     ko: ['카리스마 스킬이 오르지 않음. 모든 상인 아이템 가격 20% 증가(!)'] },
   { id: 32, cat: 'negative', name: 'DR. JEKYLL', koName: '지킬박사', value: 1,
     en: ['After gaining the Fresh Wound status, it cannot be removed until the end of the raid'],
-    ko: ['Fresh wound 상태 (과다출혈 치료시 생기는 디버프, 재출혈 확률 있음)'] },
+    ko: ['Fresh wound 디버프가 레이드 종료까지 사라지지 않음 (과다 출혈 치료시 생기는 디버프)'] },
   { id: 33, cat: 'negative', name: 'ALLERGIC', koName: '알레르기', value: 3,
     en: ['Become allergic to 2 random items from the Provisions or Medication category'],
     ko: ['식량 혹은 치료아이템 카테고리에서 랜덤하게 아이템 2개에 알레르기 생김 (!)'] },

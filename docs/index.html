@@ -597,6 +597,21 @@
     .modal-foot .hint { order: 2; flex: 1 0 100%; margin: 2px 0 0; text-align: center; }
   }
 
+  /* ------------------------------------------------------------ presets */
+  .preset-in { width: 420px; max-width: 100%; }
+  .preset-list { padding: 8px; max-height: min(60vh, 420px); overflow-y: auto; }
+  .preset-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 10px; border-radius: 3px;
+  }
+  .preset-row:hover { background: var(--panel-2); }
+  .preset-name { font-size: 13px; color: var(--text); }
+  .preset-apply { margin-left: auto; padding: 7px 14px; flex: 0 0 auto; }
+  /* the save button is a visible placeholder for work not built yet, not a
+     bug — disabled state makes that unambiguous rather than hiding it */
+  #presetSaveBtn { width: 100%; text-align: center; opacity: .55; cursor: not-allowed; }
+  #presetSaveBtn:hover { background: var(--panel); color: var(--text-dim); }
+
   .toast {
     position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
     background: var(--panel-2); border: 1px solid var(--line-hi); border-radius: 3px;
@@ -629,6 +644,8 @@
 
     <div class="tools">
       <button class="tool" id="onlyBtn" aria-pressed="false">선택만</button>
+      <button class="tool" id="randomBtn">랜덤</button>
+      <button class="tool" id="presetBtn">프리셋</button>
       <button class="tool" id="shotBtn">이미지 저장</button>
       <button class="tool" id="shareBtn">링크 복사</button>
       <button class="tool" id="resetBtn">초기화</button>
@@ -734,6 +751,21 @@
       <button class="tool" id="copyImgBtn" hidden>이미지 복사</button>
       <button class="tool" id="shareImgBtn" hidden>공유</button>
       <button class="tool" id="dlBtn">다운로드</button>
+    </div>
+  </div>
+</div>
+
+<!-- Read-only for now: applies a hardcoded build. "Save current build as a
+     preset" is not implemented yet — see PRESETS in data.js. -->
+<div class="modal" id="presetModal" hidden>
+  <div class="modal-in preset-in" role="dialog" aria-modal="true" aria-labelledby="presetTitle">
+    <div class="modal-head">
+      <h2 id="presetTitle">프리셋</h2>
+      <button class="modal-x" id="presetClose" aria-label="닫기">×</button>
+    </div>
+    <div class="preset-list" id="presetList"></div>
+    <div class="modal-foot">
+      <button class="tool" id="presetSaveBtn" disabled>+ 새 프리셋 저장</button>
     </div>
   </div>
 </div>
@@ -1400,6 +1432,8 @@
     footerRule: 'footerRule', footerBudget: 'footerBudget', footerShare: 'footerShare',
     sheetLeftLbl: 'sheetLeft',
     modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
+    randomBtn: 'randomBtn', presetBtn: 'presetBtn', presetTitle: 'presetPanelTitle',
+    presetSaveBtn: 'presetSaveTodo',
   };
 
   function applyStaticText() {
@@ -1410,6 +1444,13 @@
     document.getElementById('shotImg').alt = t('modalAlt');
     document.getElementById('promoChar').alt = t('promoCharAlt');
     document.getElementById('verFoot').textContent = t('footerVersion', { ver: APP_VERSION });
+    document.getElementById('presetClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('presetSaveBtn').title = t('presetSaveNote');
+    // by id, not a pre-declared const: applyStaticText() runs (via the init
+    // sync below) before the preset section's consts exist further down —
+    // renderPresetList is a hoisted function declaration, so calling it
+    // here is safe regardless of where it's defined textually.
+    if (!document.getElementById('presetModal').hidden) renderPresetList();
   }
 
   function setLang(next) {
@@ -1476,7 +1517,11 @@
   }
   document.getElementById('modalClose').addEventListener('click', closeModal);
   $modal.addEventListener('click', (e) => { if (e.target === $modal) closeModal(); });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$modal.hidden) closeModal(); });
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!$modal.hidden) closeModal();
+    else if (!document.getElementById('presetModal').hidden) closePresetPanel();
+  });
 
   document.getElementById('shotBtn').addEventListener('click', async (e) => {
     if (!selected.size) return toast(t('toastPickFirst'));
@@ -1535,6 +1580,90 @@
       toast(t('toastCopyImgFail', { msg: err.message }));
     }
   });
+
+  // ---------------------------------------------------------------- random
+  // Just for fun: roll a build that passes (sum >= 0) and respects EXCLUSIONS.
+  // Debuffs go in first (each independently, so the count varies), then
+  // perks are spent on greedily-but-randomly while affordable.
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function rollRandomBuild() {
+    const chosen = new Set();
+    const canAdd = (id) => !(CONFLICTS.get(id) ?? []).some(c => chosen.has(c.other.id));
+
+    const negIds = shuffled(BY_CAT.negative.map(m => m.id));
+    for (const id of negIds) if (Math.random() < 0.55 && canAdd(id)) chosen.add(id);
+    if (chosen.size === 0) chosen.add(negIds[0]);   // never roll a completely empty build
+
+    let balance = [...chosen].reduce((s, id) => s + BY_ID.get(id).value, 0);
+    for (const id of shuffled(BY_CAT.positive.map(m => m.id))) {
+      if (!canAdd(id)) continue;
+      const v = BY_ID.get(id).value;   // negative
+      if (balance + v >= 0 && Math.random() < 0.6) { chosen.add(id); balance += v; }
+    }
+    return chosen;
+  }
+
+  document.getElementById('randomBtn').addEventListener('click', () => {
+    selected.clear();
+    rollRandomBuild().forEach(id => selected.add(id));
+    save();
+    render();
+    toast(t('toastRandomOk'));
+  });
+
+  // ---------------------------------------------------------------- presets
+  // Read-only for now — applies a hardcoded build from data.js's PRESETS.
+  // "Save the current selection as a new preset" isn't built yet (see the
+  // disabled button in the panel); this just proves the apply path works.
+  const $presetModal = document.getElementById('presetModal');
+  const $presetList = document.getElementById('presetList');
+
+  function closePresetPanel() {
+    $presetModal.hidden = true;
+    document.getElementById('presetBtn').focus();
+  }
+
+  function applyPreset(preset) {
+    const name = preset.name[lang] ?? preset.name.ko;
+    selected.clear();
+    dropConflicts(new Set(preset.ids)).forEach(id => selected.add(id));
+    save();
+    render();
+    closePresetPanel();
+    toast(t('toastPresetOk', { name }));
+  }
+
+  function renderPresetList() {
+    $presetList.replaceChildren();
+    if (!PRESETS.length) {
+      $presetList.append(el('div', 'picks-empty', t('presetEmpty')));
+      return;
+    }
+    for (const preset of PRESETS) {
+      const row = el('div', 'preset-row');
+      row.append(el('span', 'preset-name', preset.name[lang] ?? preset.name.ko));
+      const btn = el('button', 'tool preset-apply', t('presetApply'));
+      btn.addEventListener('click', () => applyPreset(preset));
+      row.append(btn);
+      $presetList.append(row);
+    }
+  }
+
+  document.getElementById('presetBtn').addEventListener('click', () => {
+    renderPresetList();
+    $presetModal.hidden = false;
+    document.getElementById('presetClose').focus();
+  });
+  document.getElementById('presetClose').addEventListener('click', closePresetPanel);
+  $presetModal.addEventListener('click', (e) => { if (e.target === $presetModal) closePresetPanel(); });
 
   document.getElementById('shareBtn').addEventListener('click', async () => {
     const url = shareUrl();

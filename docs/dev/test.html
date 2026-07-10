@@ -512,6 +512,74 @@ window.addEventListener('load', async () => {
 
   $('#resetBtn').click();
 
+  // ---- random build ------------------------------------------------------
+  // Every roll must independently satisfy the same two invariants the manual
+  // UI enforces: the running total never goes negative, and no two
+  // conflicting modifiers end up selected together. 40 rolls to make the
+  // probabilistic branches (coin flips per debuff/perk) actually exercise
+  // both the "empty debuffs -> forced pick" fallback and real conflicts.
+  // BY_ID/CONFLICTS live inside index.html's own IIFE, unreachable from this
+  // globally-scoped test script — rebuild the bits needed from MODIFIERS/
+  // EXCLUSIONS, which are declared at the top level of data.js.
+  const byId = new Map(MODIFIERS.map(m => [m.id, m]));
+  const conflictIds = new Set(EXCLUSIONS.flatMap(x => [x.a, x.b]));
+  // `selected` lives inside index.html's own IIFE — read the DOM instead.
+  // A card's h3 is always m.name (invariant across languages), so it's a
+  // stable key back into MODIFIERS.
+  const currentSelectionIds = () => [...document.querySelectorAll('button.card.on')]
+    .map(c => MODIFIERS.find(m => m.name === c.querySelector('h3').textContent).id);
+  let sawNonTrivial = false, sawConflictOpportunity = false;
+  for (let i = 0; i < 40; i++) {
+    $('#randomBtn').click();
+    const ids = currentSelectionIds();
+    chk(ids.length > 0, `roll #${i}: never completely empty`);
+    const sum = ids.reduce((s, id) => s + byId.get(id).value, 0);
+    chk(sum >= 0, `roll #${i}: balance stays >= 0 (got ${sum}, ids ${ids.join(',')})`);
+    const idSet = new Set(ids);
+    const violated = EXCLUSIONS.filter(x => idSet.has(x.a) && idSet.has(x.b));
+    chk(violated.length === 0, `roll #${i}: no exclusion pair both selected (${JSON.stringify(violated)})`);
+    if (ids.length > 1) sawNonTrivial = true;
+    if (ids.some(id => conflictIds.has(id))) sawConflictOpportunity = true;
+  }
+  chk(sawNonTrivial, '40 rolls produced at least one multi-modifier build');
+  chk(sawConflictOpportunity, '40 rolls touched at least one exclusion-linked modifier');
+  chk($('#toast').textContent === '랜덤 조합을 뽑았습니다', 'random roll toasts: ' + $('#toast').textContent);
+  $('#resetBtn').click();
+
+  // ---- presets (read-only demo) ------------------------------------------
+  chk(Array.isArray(PRESETS) && PRESETS.length >= 1, 'at least one demo preset exists');
+  chk($('#presetModal').hidden, 'preset panel starts closed');
+  $('#presetBtn').click();
+  chk(!$('#presetModal').hidden, 'preset panel opens');
+  const presetRows = [...document.querySelectorAll('.preset-row')];
+  chk(presetRows.length === PRESETS.length, `one row per preset (${presetRows.length})`);
+  chk(presetRows[0].querySelector('.preset-name').textContent === PRESETS[0].name.ko,
+      'preset name shown in korean by default');
+  chk($('#presetSaveBtn').disabled, 'save-as-new-preset is a disabled placeholder (not built yet)');
+  chk($('#presetSaveBtn').title.length > 0, 'disabled save button explains itself via title');
+
+  presetRows[0].querySelector('.preset-apply').click();
+  chk($('#presetModal').hidden, 'applying a preset closes the panel');
+  const appliedIds = currentSelectionIds().sort((a, b) => a - b);
+  const expectedIds = [...PRESETS[0].ids].sort((a, b) => a - b);
+  chk(JSON.stringify(appliedIds) === JSON.stringify(expectedIds),
+      `applied preset matches its ids (${appliedIds} vs ${expectedIds})`);
+  const presetSum = appliedIds.reduce((s, id) => s + byId.get(id).value, 0);
+  chk(presetSum === 0, `demo preset itself balances to exactly 0 (got ${presetSum})`);
+  chk(/적용됨/.test($('#toast').textContent), 'applying a preset toasts: ' + $('#toast').textContent);
+
+  // panel dismissal: backdrop click (e.target === the overlay itself, not
+  // the inner dialog) and the × button
+  $('#presetBtn').click();
+  $('#presetModal').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  chk($('#presetModal').hidden, 'preset panel closes on backdrop click');
+
+  $('#presetBtn').click();
+  $('#presetClose').click();
+  chk($('#presetModal').hidden, 'preset panel closes via ×');
+
+  $('#resetBtn').click();
+
   // ---- layout sanity ---------------------------------------------------
   // Nothing may push the page sideways, at any width we support.
   chk(document.documentElement.scrollWidth <= innerWidth + 1,

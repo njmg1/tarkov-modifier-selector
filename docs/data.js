@@ -195,6 +195,21 @@ const MODIFIERS = [
 //                                         they are designed to coexist
 //   KAPPA PROTOCOL                     vs BROKEN SECURE CONTAINER — you can
 //                                         receive Kappa and have it restricted
+// Saved builds shown in the (still read-only) Presets panel.
+//
+// TODO: this is a placeholder — there is no UI yet to save the CURRENT
+// selection as a new preset. For now PRESETS is a hardcoded demo list;
+// wiring up "save this build" is future work.
+const PRESETS = [
+  {
+    id: 'demo-kappa-zero',
+    name: { ko: '예시 조합 — 카파 프로토콜', ja: 'サンプル — カッパプロトコル', en: 'Example — Kappa Protocol' },
+    // rolled by the random-build button; kept because it lands on exactly
+    // 0 (the tightest possible pass) while still taking KAPPA PROTOCOL
+    ids: [11, 13, 15, 23, 25, 26, 27, 28, 31, 32, 33, 35],
+  },
+];
+
 const EXCLUSIONS = [
   { a: 18, b: 24, kind: 'opposite', axis: { ko: '출혈 확률', ja: '出血確率', en: 'Bleeding chance' } },
   { a: 21, b: 25, kind: 'opposite', axis: { ko: '골절·낙하 피해', ja: '骨折・落下ダメージ', en: 'Fracture & fall damage' } },
@@ -280,4 +295,15 @@ const STRINGS = {
   imgGlobalNote:  { ko: '글로벌 모디파이어 {n}종은 항상 적용', ja: 'グローバルモディファイア{n}種は常に適用', en: '{n} global modifiers are always active' },
 
   gridEmpty:      { ko: '선택한 항목이 없습니다', ja: '選択した項目がありません', en: 'Nothing selected' },
+
+  randomBtn:      { ko: '랜덤', ja: 'ランダム', en: 'Random' },
+  toastRandomOk:  { ko: '랜덤 조합을 뽑았습니다', ja: 'ランダムな組み合わせを選びました', en: 'Rolled a random build' },
+
+  presetBtn:      { ko: '프리셋', ja: 'プリセット', en: 'Presets' },
+  presetPanelTitle: { ko: '프리셋', ja: 'プリセット', en: 'Presets' },
+  presetApply:    { ko: '적용', ja: '適用', en: 'Apply' },
+  presetSaveTodo: { ko: '+ 새 프리셋 저장', ja: '+ 新規プリセット保存', en: '+ Save new preset' },
+  presetSaveNote: { ko: '곧 지원 예정', ja: '近日対応予定', en: 'Coming soon' },
+  presetEmpty:    { ko: '아직 프리셋이 없습니다', ja: 'まだプリセットがありません', en: 'No presets yet' },
+  toastPresetOk:  { ko: '{name} 적용됨', ja: '{name} を適用しました', en: 'Applied {name}' },
 };

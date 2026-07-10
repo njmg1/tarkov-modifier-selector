@@ -468,12 +468,21 @@
     width: 100%; padding: 16px 16px 14px; min-height: 60px;
     background: transparent; border: 0; color: inherit; font: inherit;
     cursor: pointer; text-align: left;
+    /* the drag gesture drives this, not the browser's own pan/refresh handling */
+    touch-action: none;
   }
   .sheet-bar:focus-visible { outline: 2px solid #6e8a44; outline-offset: -3px; }
   .sheet-chev {
     width: 34px; height: 4px; border-radius: 2px; background: var(--line-hi);
     position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
   }
+  /* explicit expand/collapse affordance — the pill above reads as a drag
+     handle, which people don't reliably discover, so spell it out too */
+  .sheet-arrow {
+    flex: 0 0 auto; font-size: 11px; line-height: 1; color: var(--text-dim);
+    transform: rotate(0deg); transition: transform .22s, color .18s;
+  }
+  .sheet.open .sheet-arrow { transform: rotate(180deg); color: var(--pos); }
   .sheet-count { font: 500 13px/1 var(--sans); color: var(--text); }
   .sheet-bal {
     margin-left: auto; font: 500 12px/1 var(--sans); color: var(--text-dim);
@@ -495,6 +504,9 @@
     transition: max-height .26s cubic-bezier(.4,0,.2,1);
   }
   .sheet.open .sheet-body { max-height: min(66vh, 520px); overflow-y: auto; }
+  /* while actively dragged, JS drives max-height inline on every pointermove —
+     the transition would otherwise lag a finger by 260ms */
+  .sheet.dragging .sheet-body { transition: none; }
   .sheet.open .sheet-chev { background: var(--pos); }
   .sheet .picks { padding: 0 8px 8px; }
   .sheet .pick { padding: 11px 8px; }        /* bigger tap targets */
@@ -668,6 +680,7 @@
     <span class="sheet-count" id="sheetCount">0개 선택</span>
     <span class="sheet-bal">잔여 <b id="sheetBal">0</b></span>
     <span class="sheet-verdict ok" id="sheetVerdict">PASS</span>
+    <span class="sheet-arrow" id="sheetArrow" aria-hidden="true">▾</span>
   </button>
   <div class="sheet-body" id="sheetBody">
     <div class="picks" id="sheetPicks"></div>
@@ -1199,10 +1212,84 @@
   // ------------------------------------------------------------ bottom sheet
   const $sheet = document.getElementById('sheet');
   const $sheetBar = document.getElementById('sheetBar');
+  const $sheetBody = document.getElementById('sheetBody');
+
+  function setSheetOpen(open) {
+    $sheet.classList.toggle('open', open);
+    $sheetBar.setAttribute('aria-expanded', String(open));
+  }
+
+  // The bar's pill reads as a drag handle but tap-only made that a dead end.
+  // Both gestures now drive the same state: a real drag (pointer events, so
+  // mouse and touch share one path) tracks the finger 1:1, and a plain tap —
+  // no meaningful movement — falls back to the old toggle.
+  const sheetCap = () => Math.min(innerHeight * 0.66, 520);   // mirrors the CSS min()
+
+  let drag = null;          // { startY, startHeight, target, lastY, lastT, moved }
+  let suppressClick = false;
+
+  $sheetBar.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;   // ignore right/middle click
+    // scrollHeight reads 0 when an ancestor is display:none (desktop width,
+    // where the sheet is hidden) — fall back to the cap so we never divide by 0
+    const measured = $sheetBody.scrollHeight;
+    const target = Math.min(measured > 0 ? measured : sheetCap(), sheetCap());
+    drag = {
+      startY: e.clientY, lastY: e.clientY, lastT: e.timeStamp,
+      startHeight: $sheet.classList.contains('open') ? target : 0,
+      target, moved: false,
+    };
+    $sheet.classList.add('dragging');
+    try { $sheetBar.setPointerCapture(e.pointerId); } catch { /* synthetic events in tests */ }
+  });
+
+  $sheetBar.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (Math.abs(e.clientY - drag.startY) > 6) drag.moved = true;
+    const h = Math.min(drag.target, Math.max(0, drag.startHeight + (drag.startY - e.clientY)));
+    $sheetBody.style.maxHeight = `${h}px`;
+    drag.lastY = e.clientY;
+    drag.lastT = e.timeStamp;
+  });
+
+  function endDrag(e) {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    $sheet.classList.remove('dragging');
+
+    let open;
+    if (!d.moved) {
+      open = !$sheet.classList.contains('open');   // a plain tap toggles
+    } else {
+      const h = Math.min(d.target, Math.max(0, d.startHeight + (d.startY - e.clientY)));
+      const dt = Math.max(1, e.timeStamp - d.lastT);
+      const velocity = (d.lastY - e.clientY) / dt;   // px/ms, +up
+      // a quick flick wins outright; otherwise settle by how far it got dragged
+      open = Math.abs(velocity) > 0.5 ? velocity > 0 : h / d.target > 0.35;
+    }
+    $sheetBody.style.maxHeight = '';
+    setSheetOpen(open);
+
+    // mouse and touch both fire a trailing 'click' after pointerup — swallow
+    // it so the tap-vs-drag decision above doesn't get immediately re-toggled.
+    // Cleared on a timer too, in case some browser never fires it.
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 400);
+  }
+  $sheetBar.addEventListener('pointerup', endDrag);
+  $sheetBar.addEventListener('pointercancel', () => {
+    drag = null;
+    $sheet.classList.remove('dragging');
+    $sheetBody.style.maxHeight = '';   // leave open/closed state untouched
+  });
 
   $sheetBar.addEventListener('click', () => {
-    const open = $sheet.classList.toggle('open');
-    $sheetBar.setAttribute('aria-expanded', String(open));
+    // Reached by keyboard activation (Enter/Space fire 'click' with no
+    // preceding pointer events) and by test code calling .click() directly —
+    // neither goes through the pointer handlers above, so this still owns them.
+    if (suppressClick) { suppressClick = false; return; }
+    setSheetOpen(!$sheet.classList.contains('open'));
   });
 
   // One toolbar, two homes. Cloning it would duplicate ids and split the

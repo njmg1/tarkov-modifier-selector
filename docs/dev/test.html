@@ -7,6 +7,16 @@ window.addEventListener('load', async () => {
   const chk = (c, m) => { if (!c) { fail++; out.push('FAIL: ' + m); } else out.push('ok: ' + m); };
 
   const $ = s => document.querySelector(s);
+  // canvas render + toBlob time is inherently variable — poll instead of a
+  // fixed sleep so this isn't a coin flip under headless/CI load
+  const waitFor = async (fn, timeout = 2000, step = 25) => {
+    const deadline = performance.now() + timeout;
+    while (performance.now() < deadline) {
+      if (fn()) return true;
+      await new Promise(r => setTimeout(r, step));
+    }
+    return false;
+  };
   const bal = () => $('#balance').textContent.trim();
   const detail = () => $('#meterDetail').textContent.trim();
   const verdict = () => $('#verdict').textContent.trim();
@@ -295,14 +305,59 @@ window.addEventListener('load', async () => {
   chk($('#sheetVerdict').textContent === 'OVER', 'sheet verdict OVER when overspent');
   chk($('#sheetBal').classList.contains('bad'), 'sheet balance flagged bad');
 
-  // expand / collapse
+  // expand / collapse — tap
   chk(!$('#sheet').classList.contains('open'), 'sheet starts collapsed');
   chk($('#sheetBar').getAttribute('aria-expanded') === 'false', 'aria-expanded false');
+  chk($('#sheetArrow') !== null, 'explicit expand arrow present');
   $('#sheetBar').click();
   chk($('#sheet').classList.contains('open'), 'sheet opens on bar tap');
   chk($('#sheetBar').getAttribute('aria-expanded') === 'true', 'aria-expanded true');
   $('#sheetBar').click();
   chk(!$('#sheet').classList.contains('open'), 'sheet collapses again');
+
+  // expand / collapse — drag, simulated with synthetic PointerEvents. Real
+  // wall-clock delays between moves matter here: the handler's flick
+  // detection divides by elapsed time, and dispatching every step in the
+  // same tick would make that time ~0 and every drag read as a flick.
+  const barY = $('#sheetBar').getBoundingClientRect().top + 20;
+  const swipe = async (fromY, toY, steps = 6) => {
+    const id = 1;
+    $('#sheetBar').dispatchEvent(new PointerEvent('pointerdown', {
+      clientY: fromY, pointerId: id, isPrimary: true, bubbles: true, cancelable: true }));
+    for (let i = 1; i <= steps; i++) {
+      await new Promise(r => setTimeout(r, 12));
+      $('#sheetBar').dispatchEvent(new PointerEvent('pointermove', {
+        clientY: fromY + (toY - fromY) * (i / steps), pointerId: id, bubbles: true, cancelable: true }));
+    }
+    await new Promise(r => setTimeout(r, 12));
+    $('#sheetBar').dispatchEvent(new PointerEvent('pointerup', {
+      clientY: toY, pointerId: id, bubbles: true, cancelable: true }));
+  };
+
+  // Large deltas (way past both the 35%-of-height and the flick-velocity
+  // threshold) so the outcome doesn't hinge on exactly which branch fires.
+  await swipe(barY, barY - 700);
+  chk($('#sheet').classList.contains('open'), 'drag up past threshold opens the sheet');
+
+  // the browser's trailing click after a touch/mouse drag must not re-toggle it
+  $('#sheetBar').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  chk($('#sheet').classList.contains('open'), 'trailing click after a drag is swallowed');
+
+  // small drag, well under either threshold -> snaps back to where it started
+  await swipe(barY, barY + 20);
+  chk($('#sheet').classList.contains('open'), 'a small drag below threshold settles back open');
+
+  // drag down past the threshold from open -> closes
+  await swipe(barY, barY + 700);
+  chk(!$('#sheet').classList.contains('open'), 'drag down past threshold closes the sheet');
+
+  // a real keyboard click still works after all that pointer activity —
+  // wait out the trailing-click suppression window from the last drag first
+  await new Promise(r => setTimeout(r, 450));
+  $('#sheetBar').click();
+  chk($('#sheet').classList.contains('open'), 'keyboard-style click still toggles after drags');
+  $('#sheetBar').click();
+  chk(!$('#sheet').classList.contains('open'), 'closes again');
 
   $('#resetBtn').click();
 
@@ -359,8 +414,8 @@ window.addEventListener('load', async () => {
   // ---- image preview modal --------------------------------------------
   chk($('#modal').hidden, 'modal starts hidden');
   $('#shotBtn').click();
-  await new Promise(r => setTimeout(r, 300));      // render + toBlob are async
-  chk(!$('#modal').hidden, 'modal opens after 이미지 저장');
+  const modalOpened = await waitFor(() => !$('#modal').hidden);
+  chk(modalOpened, 'modal opens after 이미지 저장');
   chk(/^data:image\/png;base64,/.test($('#shotImg').src), 'preview img is a data URI');
   chk($('#shotImg').naturalWidth > 0, 'preview img decoded');
   chk($('#dlBtn') !== null, 'download button present');

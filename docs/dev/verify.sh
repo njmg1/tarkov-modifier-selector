@@ -20,7 +20,7 @@ open('_run.html','w').write(idx.replace('</body>', tst + '\n</body>'))
 # silently skip the desktop layout altogether.
 rc=0
 for size in 1400,1000 390,844; do
-  "$CHROME" --headless=new --disable-gpu --no-first-run --virtual-time-budget=8000 \
+  "$CHROME" --headless=new --disable-gpu --no-first-run --virtual-time-budget=14000 \
     --window-size="$size" \
     --dump-dom "file://$PWD/_run.html" 2>/dev/null > /tmp/kord-dom.html
 

@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KORD BREACH 모디파이어 선택기 — 노잼망겜</title>
-<meta name="description" content="Escape from Tarkov · KORD BREACH 시즌 1 모디파이어(특성 퍽) 36종 한글 번역 및 조합 선택기. 합계가 0 이상이어야 통과.">
+<title>KORD BREACH 모디파이어 시뮬레이터 — 노잼망겜</title>
+<meta name="description" content="Escape from Tarkov · KORD BREACH 시즌 1 모디파이어(특성 퍽) 36종 한글 번역 및 조합 시뮬레이터. 합계가 0 이상이어야 통과.">
 
 <!-- Link previews need absolute URLs, so these are pinned to the Pages origin. -->
 <link rel="canonical" href="https://njmg1.github.io/tarkov-modifier-selector/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="노잼망겜">
 <meta property="og:url" content="https://njmg1.github.io/tarkov-modifier-selector/">
-<meta property="og:title" content="KORD BREACH 모디파이어 선택기">
+<meta property="og:title" content="KORD BREACH 모디파이어 시뮬레이터">
 <meta property="og:description" content="시즌 1 모디파이어 36종 한글 번역 · 디버프로 포인트를 벌어 퍽에 쓰고, 합계 0 이상이면 통과.">
 <meta property="og:image" content="https://njmg1.github.io/tarkov-modifier-selector/assets/og.png">
 <meta property="og:image:width" content="1200">
@@ -267,6 +267,26 @@
   .promo-links svg { width: 15px; height: 15px; fill: currentColor; flex: 0 0 auto; }
   .promo-links .yt:hover { border-color: #d0483c; color: #ef6a5e; }
 
+  /* language selector — sits in the same row as the social buttons, with a
+     divider so it doesn't read as a third social link */
+  .lang-group {
+    display: flex; gap: 6px; align-items: center; margin-left: 4px; padding-left: 10px;
+    border-left: 1px solid var(--line);
+  }
+  .lang-btn {
+    padding: 7px 11px; border-radius: 3px; font: 600 12px/1 var(--sans);
+    color: var(--text-dim); background: var(--panel); border: 1px solid var(--line-hi);
+    cursor: pointer; transition: .14s;
+  }
+  .lang-btn:hover { color: var(--text); background: var(--panel-2); }
+  .lang-btn[aria-pressed="true"] {
+    color: var(--pos); border-color: var(--pos-line-hi); background: rgba(120,152,66,.14);
+  }
+  .lang-btn:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  @media (max-width: 480px) {
+    .lang-group { margin-left: 0; padding-left: 0; border-left: 0; flex-basis: 100%; }
+  }
+
   @media (max-width: 620px) {
     .promo { flex-direction: column; align-items: stretch; gap: 0; padding: 0 18px 18px; }
     .promo-char { height: 128px; align-self: flex-start; margin: 8px 0 -1px -8px; }
@@ -382,15 +402,21 @@
 
   .body { min-width: 0; }
   .title {
-    display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px;
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; margin-bottom: 5px;
   }
   .title h3 {
+    /* nowrap: let the row wrap around it instead — a long koName next to a
+       short title used to squeeze the title itself into two ragged lines */
     margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e7ebe8;
+    white-space: nowrap;
   }
-  .ko-name {
+  /* one title annotation exists per language; only the active one is shown.
+     English has none — m.name (the h3) is already the game's own English title. */
+  .ko-name, .ja-name {
     font-size: 12px; line-height: 1.25; color: var(--text-faint); white-space: nowrap;
+    display: none;
   }
-  body.lang-en .ko-name { display: none; }
+  body.lang-ko .ko-name, body.lang-ja .ja-name { display: inline; }
   .val {
     font: 700 13px/1 var(--mono); font-variant-numeric: tabular-nums;
     margin-left: auto; flex: 0 0 auto; padding-left: 8px;
@@ -398,7 +424,8 @@
   .card.positive .val { color: var(--pos); }
   .card.negative .val { color: var(--neg); }
 
-  ul.desc { margin: 0; padding: 0; list-style: none; }
+  /* body text: exactly one of these three shows, matching the active language */
+  ul.desc { margin: 0; padding: 0; list-style: none; display: none; }
   ul.desc li {
     font-size: 12.5px; line-height: 1.45; color: var(--text-dim);
     padding-left: 11px; position: relative;
@@ -406,24 +433,25 @@
   ul.desc li::before {
     content: "·"; position: absolute; left: 2px; color: var(--text-faint);
   }
-  .ko {
+  .ko, .ja {
     margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b9c0bc;
+    display: none;
   }
+  body.lang-ko .ko { display: block; }
+  body.lang-ja .ja { display: block; }
+  body.lang-en ul.desc { display: block; }
 
   @media (max-width: 620px) {
     /* a wrapping title used to drag the value off the top-right corner */
     .card { grid-template-columns: 48px 1fr; padding: 12px 46px 12px 6px; }
     .icon { width: 44px; height: 44px; }
-    .title { flex-wrap: wrap; gap: 3px 8px; margin-bottom: 4px; }
+    .title { margin-bottom: 4px; }
     .val { position: absolute; top: 13px; right: 12px; margin: 0; padding: 0; }
-    .ko-name { white-space: normal; }
+    .ko-name, .ja-name { white-space: normal; }
   }
   .ko .trunc {
     color: var(--warn); cursor: help; font-weight: 600;
   }
-
-  body.lang-en .ko { display: none; }
-  body.lang-ko ul.desc { display: none; }
 
   .empty {
     grid-column: 1 / -1; padding: 28px; text-align: center;
@@ -472,17 +500,22 @@
     touch-action: none;
   }
   .sheet-bar:focus-visible { outline: 2px solid #6e8a44; outline-offset: -3px; }
-  .sheet-chev {
-    width: 34px; height: 4px; border-radius: 2px; background: var(--line-hi);
-    position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
-  }
-  /* explicit expand/collapse affordance — the pill above reads as a drag
-     handle, which people don't reliably discover, so spell it out too */
+  /* A bare pill handle reads as "drag me" in mobile UX convention, which
+     undersold that a plain tap works too. A bordered circular chevron reads
+     as a normal tap/expand button instead — still draggable underneath. */
   .sheet-arrow {
-    flex: 0 0 auto; font-size: 11px; line-height: 1; color: var(--text-dim);
-    transform: rotate(0deg); transition: transform .22s, color .18s;
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line-hi); background: var(--panel-2);
+    font-size: 11px; line-height: 1; color: var(--text-dim);
+    transform: rotate(0deg);
+    transition: transform .22s, color .18s, background-color .18s, border-color .18s;
   }
-  .sheet.open .sheet-arrow { transform: rotate(180deg); color: var(--pos); }
+  .sheet.open .sheet-arrow {
+    transform: rotate(180deg); color: var(--pos);
+    background: rgba(120,152,66,.16); border-color: var(--pos-line-hi);
+  }
+  .sheet-bar:active .sheet-arrow { background: var(--panel); }
   .sheet-count { font: 500 13px/1 var(--sans); color: var(--text); }
   .sheet-bal {
     margin-left: auto; font: 500 12px/1 var(--sans); color: var(--text-dim);
@@ -507,7 +540,6 @@
   /* while actively dragged, JS drives max-height inline on every pointermove —
      the transition would otherwise lag a finger by 260ms */
   .sheet.dragging .sheet-body { transition: none; }
-  .sheet.open .sheet-chev { background: var(--pos); }
   .sheet .picks { padding: 0 8px 8px; }
   .sheet .pick { padding: 11px 8px; }        /* bigger tap targets */
   .sheet .pick .x { visibility: visible; color: var(--text-faint); }
@@ -586,7 +618,7 @@
     <div class="meter">
       <div class="meter-top">
         <span id="balance" class="balance">0</span>
-        <span>잔여 포인트</span>
+        <span id="meterLeftLabel">잔여 포인트</span>
         <span class="sep">/</span>
         <span id="meterDetail">디버프 0 · 퍽 0</span>
       </div>
@@ -596,7 +628,6 @@
     <div id="verdict" class="verdict ok">PASS</div>
 
     <div class="tools">
-      <button class="tool" id="langBtn" aria-pressed="true">한/EN</button>
       <button class="tool" id="onlyBtn" aria-pressed="false">선택만</button>
       <button class="tool" id="shotBtn">이미지 저장</button>
       <button class="tool" id="shareBtn">링크 복사</button>
@@ -608,14 +639,14 @@
 <div class="wrap">
   <aside>
     <div class="aside-head">
-      <h2>선택 목록</h2>
+      <h2 id="asideTitle">선택 목록</h2>
       <span class="count" id="pickCount">0 / 30</span>
     </div>
     <div class="picks" id="picks"></div>
     <div class="aside-foot">
-      <div class="gain"><span>디버프로 획득</span><span id="fGain">+0</span></div>
-      <div class="cost"><span>퍽에 사용</span><span id="fCost">−0</span></div>
-      <div class="left" id="fLeftRow"><span>잔여 포인트</span><span id="fLeft">0</span></div>
+      <div class="gain"><span id="gainLbl">디버프로 획득</span><span id="fGain">+0</span></div>
+      <div class="cost"><span id="costLbl">퍽에 사용</span><span id="fCost">−0</span></div>
+      <div class="left" id="fLeftRow"><span id="leftLbl">잔여 포인트</span><span id="fLeft">0</span></div>
     </div>
   </aside>
 
@@ -623,9 +654,9 @@
   <div class="promo">
     <img class="promo-char" id="promoChar" alt="노잼망겜 캐릭터" width="249" height="235">
     <div class="promo-body">
-      <div class="promo-kicker">시즌 캐릭터 모디파이어 (특성 퍽) 번역</div>
-      <div class="promo-name">노잼망겜 <span>NoJamMangGameTV</span></div>
-      <div class="promo-note">공식 한글화 번역 아님</div>
+      <div class="promo-kicker" id="promoKicker">시즌 캐릭터 모디파이어 (특성 퍽) 번역</div>
+      <div class="promo-name"><span id="brandName">노잼망겜</span> <span>NoJamMangGameTV</span></div>
+      <div class="promo-note" id="promoNote">공식 한글화 번역 아님</div>
       <div class="promo-links">
         <a class="yt" href="https://www.youtube.com/@NoJamMangGame" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
@@ -635,21 +666,26 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.81-5.96 6.81H1.69l7.73-8.84L1.27 2.25h6.82l4.71 6.23 5.44-6.23zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64z"/></svg>
           X (Twitter)
         </a>
+        <div class="lang-group" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="ko" aria-pressed="true">한국어</button>
+          <button class="lang-btn" data-lang="ja" aria-pressed="false">日本語</button>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">English</button>
+        </div>
       </div>
     </div>
   </div>
 
   <section id="sec-global">
     <div class="sec-head">
-      <h2>GLOBAL MODIFIERS</h2><span class="sec-ko">공통 적용 사항</span><span class="rule"></span>
-      <span class="tally">항상 적용 · 비용 없음</span>
+      <h2>GLOBAL MODIFIERS</h2><span class="sec-ko" id="secKoGlobal">공통 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tallyGlobal">항상 적용 · 비용 없음</span>
     </div>
     <div class="grid" id="grid-global"></div>
   </section>
 
   <section id="sec-positive">
     <div class="sec-head">
-      <h2>PERSONAL POSITIVE</h2><span class="sec-ko">선택 적용 사항</span><span class="rule"></span>
+      <h2>PERSONAL POSITIVE</h2><span class="sec-ko sec-ko-choice">선택 적용 사항</span><span class="rule"></span>
       <span class="tally" id="tally-positive"></span>
     </div>
     <div class="grid" id="grid-positive"></div>
@@ -657,7 +693,7 @@
 
   <section id="sec-negative">
     <div class="sec-head">
-      <h2>PERSONAL NEGATIVE</h2><span class="sec-ko">선택 적용 사항</span><span class="rule"></span>
+      <h2>PERSONAL NEGATIVE</h2><span class="sec-ko sec-ko-choice">선택 적용 사항</span><span class="rule"></span>
       <span class="tally" id="tally-negative"></span>
     </div>
     <div class="grid" id="grid-negative"></div>
@@ -665,10 +701,9 @@
   </main>
 
   <footer>
-    합계가 <b>0 이상</b>이면 통과. 디버프(+)를 켜서 포인트를 벌고, 퍽(−)에 씁니다.
-    모든 디버프를 켜도 포인트는 <b>+34</b>, 모든 퍽의 총 비용은 <b>−71</b>입니다.<br>
-    선택 상태는 브라우저에 저장되고 URL <code>#b=…</code> 로도 공유됩니다.
-    수치는 시즌 시작 전 변경될 수 있습니다.<br>
+    <div id="footerRule">합계가 <b>0 이상</b>이면 통과. 디버프(+)를 켜서 포인트를 벌고, 퍽(−)에 씁니다.</div>
+    <div id="footerBudget">모든 디버프를 켜도 포인트는 <b>+34</b>, 모든 퍽의 총 비용은 <b>−71</b>입니다.</div>
+    <div id="footerShare">선택 상태는 브라우저에 저장되고 URL <code>#b=…</code> 로도 공유됩니다. 수치는 시즌 시작 전 변경될 수 있습니다.</div>
     <span id="verFoot"></span>
   </footer>
 </div>
@@ -676,9 +711,8 @@
 <!-- phones: the aside is hidden and this pulls up from the bottom instead -->
 <div class="sheet" id="sheet">
   <button class="sheet-bar" id="sheetBar" aria-expanded="false" aria-controls="sheetBody">
-    <span class="sheet-chev" aria-hidden="true"></span>
     <span class="sheet-count" id="sheetCount">0개 선택</span>
-    <span class="sheet-bal">잔여 <b id="sheetBal">0</b></span>
+    <span class="sheet-bal"><span id="sheetLeftLbl">잔여</span> <b id="sheetBal">0</b></span>
     <span class="sheet-verdict ok" id="sheetVerdict">PASS</span>
     <span class="sheet-arrow" id="sheetArrow" aria-hidden="true">▾</span>
   </button>
@@ -697,6 +731,7 @@
     <div class="modal-img"><img id="shotImg" alt="선택한 모디파이어 조합"></div>
     <div class="modal-foot">
       <span class="hint" id="modalHint">이미지를 길게 눌러 저장할 수 있습니다</span>
+      <button class="tool" id="copyImgBtn" hidden>이미지 복사</button>
       <button class="tool" id="shareImgBtn" hidden>공유</button>
       <button class="tool" id="dlBtn">다운로드</button>
     </div>
@@ -713,14 +748,36 @@
   'use strict';
 
   document.getElementById('promoChar').src = CHARACTER_URI;
-  document.getElementById('verTag').textContent = `v${APP_VERSION}`;
-  document.getElementById('verFoot').textContent = `버전 ${APP_VERSION}`;
+  document.getElementById('verTag').textContent = `v${APP_VERSION}`;   // same in every language, set once
+  // verFoot is language-dependent — applyStaticText() (below) sets it
 
   const CATS = ['global', 'positive', 'negative'];
   const BY_CAT = Object.fromEntries(CATS.map(c => [c, MODIFIERS.filter(m => m.cat === c)]));
   const SELECTABLE = MODIFIERS.filter(m => m.value !== null);
   const BUDGET_MAX = BY_CAT.negative.reduce((s, m) => s + m.value, 0);   // +34
   const BY_ID = new Map(MODIFIERS.map(m => [m.id, m]));
+
+  // ---------------------------------------------------------------- language
+  const LANGS = ['ko', 'ja', 'en'];
+  const LANG_KEY = 'kord-breach-lang';
+  let lang = 'ko';
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (LANGS.includes(saved)) lang = saved;
+  } catch { /* Safari throws on file://; default stands */ }
+
+  function t(key, vars) {
+    const entry = STRINGS[key];
+    if (!entry) return key;
+    let s = entry[lang] ?? entry.ko;
+    if (vars) for (const k in vars) s = s.split(`{${k}}`).join(vars[k]);
+    return s;
+  }
+  // The game's own English title (m.name) always doubles as the English
+  // translation, so 'en' has no separate name field the way ko/ja do.
+  const nameFor = (m) => (lang === 'ja' ? m.jaName : lang === 'en' ? m.name : m.koName);
+  const bodyOf = (m) => (lang === 'ja' ? m.ja : lang === 'en' ? m.en : m.ko);
+  const axisFor = (axis) => axis[lang] ?? axis.ko;
 
   // id -> [{ other: modifier, kind, axis }, ...]
   const CONFLICTS = new Map();
@@ -814,7 +871,9 @@
 
     const body = el('div', 'body');
     const title = el('div', 'title');
-    title.append(el('h3', null, m.name), el('span', 'ko-name', m.koName));
+    // Both name annotations are built once; CSS shows only the active
+    // language's (see body.lang-ko/.lang-ja rules) — no rebuild on switch.
+    title.append(el('h3', null, m.name), el('span', 'ko-name', m.koName), el('span', 'ja-name', m.jaName));
     if (m.value !== null) title.append(el('span', 'val', fmt(m.value)));
     body.append(title);
 
@@ -831,6 +890,10 @@
     }
     body.append(ko);
 
+    const ja = el('div', 'ja');
+    ja.textContent = m.ja.join(' / ');
+    body.append(ja);
+
     node.append(body);
     if (!isGlobal) {
       const veil = el('span', 'block-veil');
@@ -842,29 +905,29 @@
     return node;
   }
 
-  const BLOCK_TEXT = {
-    opposite: '상반된 효과 선택됨',
-    guess: '추측하기론 동시 선택 안될듯',
-  };
+  const BLOCK_KEY = { opposite: 'veilOpposite', guess: 'veilGuess' };
 
   for (const c of CATS) {
     const grid = document.getElementById(`grid-${c}`);
     BY_CAT[c].forEach(m => grid.append(buildCard(m)));
-    grid.append(Object.assign(el('div', 'empty', '선택한 항목이 없습니다'), { hidden: true }));
+    grid.append(Object.assign(el('div', 'empty'), { hidden: true }));
   }
 
   // ---------------------------------------------------------------- aside
   const $picks = document.getElementById('picks');
 
+  // renderPicksInto() rebuilds these from scratch on every render() call
+  // (including after a language switch), so reading the current `lang`
+  // here at build time is enough — no separate repaint path needed.
   function buildPick(m) {
     const row = el('button', `pick ${m.cat}`);
     row.type = 'button';
-    row.title = `${m.name} — 클릭하면 해제`;
+    row.title = t('pickRemove', { name: m.name });
 
     const icon = el('div', 'icon');
     icon.style.setProperty('--ic', `url("${ICON_URI[m.id]}")`);
 
-    row.append(icon, el('span', 'nm', m.koName), el('span', 'v', fmt(m.value)), el('span', 'x', '×'));
+    row.append(icon, el('span', 'nm', nameFor(m)), el('span', 'v', fmt(m.value)), el('span', 'x', '×'));
     row.addEventListener('click', () => toggle(m.id));
     return row;
   }
@@ -876,16 +939,14 @@
     const picked = SELECTABLE.filter(m => selected.has(m.id));
 
     if (!picked.length) {
-      container.append(el('div', 'picks-empty',
-        '아직 아무것도 선택하지 않았습니다.\n디버프를 켜서 포인트를 버세요.'));
+      container.append(el('div', 'picks-empty', t('emptyPicks')));
       return;
     }
-    for (const [cat, label] of [['negative', '디버프 (부정적 효과) — 포인트 획득'],
-                                ['positive', '퍽 (긍정적 효과) — 포인트 소모']]) {
+    for (const [cat, key] of [['negative', 'groupNeg'], ['positive', 'groupPos']]) {
       const rows = picked.filter(m => m.cat === cat);
       if (!rows.length) continue;
       const group = el('div', 'picks-group');
-      group.append(el('h3', null, label));
+      group.append(el('h3', null, t(key)));
       rows.forEach(m => group.append(buildPick(m)));
       container.append(group);
     }
@@ -906,7 +967,7 @@
       selected.delete(id);            // turning something off is always allowed
     } else {
       const blocker = blockerOf(BY_ID.get(id));
-      if (blocker) return toast(`${blocker.other.koName}와(과) 동시 선택 불가 — ${blocker.axis}`);
+      if (blocker) return toast(t('toastBlocked', { name: nameFor(blocker.other), axis: axisFor(blocker.axis) }));
       selected.add(id);
     }
     save();
@@ -924,7 +985,7 @@
 
     $balance.textContent = fmt(balance).replace('+', '');
     $balance.classList.toggle('bad', !pass);
-    $detail.textContent = `디버프 +${gain} · 퍽 −${cost}`;
+    $detail.textContent = t('meterDetail', { gain, cost });
     $verdict.textContent = pass ? 'PASS' : 'OVER BUDGET';
     $verdict.className = `verdict ${pass ? 'ok' : 'bad'}`;
 
@@ -936,7 +997,7 @@
     document.getElementById('fLeft').textContent = fmt(balance).replace('+', '');
     document.getElementById('fLeftRow').classList.toggle('bad', !pass);
 
-    document.getElementById('sheetCount').textContent = `${nPicked}개 선택`;
+    document.getElementById('sheetCount').textContent = t('sheetCount', { n: nPicked });
     const $sheetBal = document.getElementById('sheetBal');
     $sheetBal.textContent = fmt(balance).replace('+', '');
     $sheetBal.classList.toggle('bad', !pass);
@@ -961,9 +1022,9 @@
       node.setAttribute('aria-disabled', String(!!blocker));
       if (blocker) {
         const msg = node.querySelector('.block-msg');
-        msg.textContent = BLOCK_TEXT[blocker.kind];
-        msg.append(el('small', null, `${blocker.other.name} · ${blocker.axis}`));
-        node.title = `${blocker.other.koName}와(과) 동시 선택 불가`;
+        msg.replaceChildren(t(BLOCK_KEY[blocker.kind]));
+        msg.append(el('small', null, `${blocker.other.name} · ${axisFor(blocker.axis)}`));
+        node.title = t('veilTitle', { name: nameFor(blocker.other) });
       } else {
         node.removeAttribute('title');
       }
@@ -979,9 +1040,11 @@
       const n = list.filter(m => selected.has(m.id)).length;
       const sum = list.filter(m => selected.has(m.id)).reduce((s, m) => s + m.value, 0);
       document.getElementById(`tally-${c}`).textContent =
-        `${n}/${list.length} 선택 · ${fmt(sum)}`;
+        t('tallyCat', { n, total: list.length, sum: fmt(sum) });
       const grid = document.getElementById(`grid-${c}`);
-      grid.querySelector('.empty').hidden = !(onlyMode && n === 0);
+      const empty = grid.querySelector('.empty');
+      empty.textContent = t('gridEmpty');
+      empty.hidden = !(onlyMode && n === 0);
     }
     document.getElementById('sec-global').hidden = onlyMode;
   }
@@ -1050,8 +1113,8 @@
     const pass = balance >= 0;
 
     const groups = [
-      ['negative', '디버프 (부정적 효과) — 포인트 획득', cssVar('--neg')],
-      ['positive', '퍽 (긍정적 효과) — 포인트 소모', cssVar('--pos')],
+      ['negative', t('groupNeg'), cssVar('--neg')],
+      ['positive', t('groupPos'), cssVar('--pos')],
     ].map(([cat, label, color]) => ({ cat, label, color, rows: picked.filter(m => m.cat === cat) }))
      .filter(g => g.rows.length);
 
@@ -1066,7 +1129,9 @@
     c.font = `400 12px ${SANS}`;
     for (const g of groups) {
       for (const m of g.rows) {
-        m._lines = wrapText(c, m.ko.join(' / ') + (m.koTruncated ? '…' : ''), DESC_W);
+        // koTruncated only ever applied to the Korean source text
+        const suffix = (lang === 'ko' && m.koTruncated) ? '…' : '';
+        m._lines = wrapText(c, bodyOf(m).join(' / ') + suffix, DESC_W);
         m._h = 26 + m._lines.length * 17 + 12;
       }
     }
@@ -1125,14 +1190,14 @@
       c.font = `700 19px ${MONO}`;
       c.fillText(value, x, cy + 11);
     };
-    stat('디버프로 획득', `+${gain}`, cssVar('--neg'), PAD);
-    stat('퍽에 사용', `−${cost}`, cssVar('--pos'), PAD + 150);
-    stat('잔여 포인트', `${balance}`, pass ? cssVar('--ok') : cssVar('--bad'), PAD + 290);
+    stat(t('imgGain'), `+${gain}`, cssVar('--neg'), PAD);
+    stat(t('imgCost'), `−${cost}`, cssVar('--pos'), PAD + 150);
+    stat(t('imgLeft'), `${balance}`, pass ? cssVar('--ok') : cssVar('--bad'), PAD + 290);
 
     c.fillStyle = cssVar('--text-faint');
     c.font = `500 12px ${SANS}`;
     c.textAlign = 'right';
-    c.fillText(`${picked.length} / ${SELECTABLE.length} 선택`, W - PAD, cy);
+    c.fillText(t('imgPicked', { n: picked.length, total: SELECTABLE.length }), W - PAD, cy);
     c.textAlign = 'left';
 
     y += SUM;
@@ -1151,14 +1216,18 @@
         const img = await loadImg(ICON_URI[m.id]);
         c.drawImage(tinted(img, g.color, 30 * scale), PAD, top + 6, 30, 30);
 
+        // 'en' has no separate title translation — m.name IS the English
+        // title, so skip the secondary label rather than repeating it twice.
+        const primary = nameFor(m);
         c.fillStyle = '#e7ebe8';
         c.font = `600 14px ${SANS}`;
-        c.fillText(m.koName, TEXT_X, top + 14);
-        const kw = c.measureText(m.koName).width;
-
-        c.fillStyle = cssVar('--text-faint');
-        c.font = `400 11px ${SANS}`;
-        c.fillText(m.name, TEXT_X + kw + 9, top + 15);
+        c.fillText(primary, TEXT_X, top + 14);
+        if (lang !== 'en') {
+          const kw = c.measureText(primary).width;
+          c.fillStyle = cssVar('--text-faint');
+          c.font = `400 11px ${SANS}`;
+          c.fillText(m.name, TEXT_X + kw + 9, top + 15);
+        }
 
         c.fillStyle = cssVar('--text-dim');
         c.font = `400 12px ${SANS}`;
@@ -1193,7 +1262,7 @@
     const tx = PAD + cw + 16;
     c.fillStyle = '#eef2ef';
     c.font = `700 17px ${SANS}`;
-    c.fillText('노잼망겜', tx, fy + 30);
+    c.fillText(t('brandName'), tx, fy + 30);
     c.fillStyle = cssVar('--text-faint');
     c.font = `400 12px ${SANS}`;
     c.fillText('youtube.com/@NoJamMangGame   ·   x.com/NoJamMangGameTV', tx, fy + 53);
@@ -1201,8 +1270,8 @@
     c.fillStyle = cssVar('--text-faint');
     c.font = `400 11px ${SANS}`;
     c.textAlign = 'right';
-    c.fillText('공식 한글화 번역 아님', W - PAD, fy + 30);
-    c.fillText(`글로벌 모디파이어 ${BY_CAT.global.length}종은 항상 적용`, W - PAD, fy + 50);
+    c.fillText(t('promoNote'), W - PAD, fy + 30);
+    c.fillText(t('imgGlobalNote', { n: BY_CAT.global.length }), W - PAD, fy + 50);
     c.textAlign = 'left';
 
     return cv;
@@ -1316,11 +1385,53 @@
     toastTimer = setTimeout(() => $toast.classList.remove('show'), 1800);
   }
 
-  document.getElementById('langBtn').addEventListener('click', (e) => {
-    const ko = document.body.classList.toggle('lang-ko');
-    document.body.classList.toggle('lang-en', !ko);
-    e.currentTarget.setAttribute('aria-pressed', String(ko));
-  });
+  // ---------------------------------------------------------------- i18n
+  const $langBtns = [...document.querySelectorAll('.lang-btn')];
+
+  // Every static (non-selection-dependent) piece of chrome text lives here,
+  // keyed by element id -> STRINGS key. render() handles the rest (anything
+  // that also depends on gain/cost/selection).
+  const STATIC_TEXT = {
+    onlyBtn: 'onlyBtn', shotBtn: 'shotBtn', shareBtn: 'shareBtn', resetBtn: 'resetBtn',
+    meterLeftLabel: 'leftLabel', asideTitle: 'asideTitle',
+    gainLbl: 'gainLabel', costLbl: 'costLabel', leftLbl: 'leftLabel',
+    promoKicker: 'promoKicker', promoNote: 'promoNote', brandName: 'brandName',
+    secKoGlobal: 'secGlobalKo', tallyGlobal: 'tallyGlobal',
+    footerRule: 'footerRule', footerBudget: 'footerBudget', footerShare: 'footerShare',
+    sheetLeftLbl: 'sheetLeft',
+    modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
+  };
+
+  function applyStaticText() {
+    for (const [id, key] of Object.entries(STATIC_TEXT))
+      document.getElementById(id).innerHTML = t(key);
+    for (const el of document.querySelectorAll('.sec-ko-choice')) el.textContent = t('secChoiceKo');
+    document.getElementById('modalClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('shotImg').alt = t('modalAlt');
+    document.getElementById('promoChar').alt = t('promoCharAlt');
+    document.getElementById('verFoot').textContent = t('footerVersion', { ver: APP_VERSION });
+  }
+
+  function setLang(next) {
+    if (!LANGS.includes(next) || next === lang) return;
+    lang = next;
+    try { localStorage.setItem(LANG_KEY, lang); } catch { /* file:// */ }
+    document.documentElement.lang = lang;
+    document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+    document.body.classList.add(`lang-${lang}`);
+    for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+    applyStaticText();
+    render();
+  }
+  for (const b of $langBtns) b.addEventListener('click', () => setLang(b.dataset.lang));
+  // sync the DOM to whatever `lang` resolved to at startup (localStorage or
+  // the 'ko' default) — the markup is hardcoded to lang-ko, which is wrong
+  // whenever a returning visitor had picked ja/en last time
+  document.documentElement.lang = lang;
+  document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+  document.body.classList.add(`lang-${lang}`);
+  for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+  applyStaticText();
 
   document.getElementById('onlyBtn').addEventListener('click', (e) => {
     onlyMode = !onlyMode;
@@ -1332,7 +1443,7 @@
     selected.clear();
     save();
     render();
-    toast('초기화됨');
+    toast(t('toastReset'));
   });
 
   // ------------------------------------------------------------ image modal
@@ -1342,12 +1453,20 @@
   const $modal = document.getElementById('modal');
   const $shotImg = document.getElementById('shotImg');
   const $dlBtn = document.getElementById('dlBtn');
+  const $copyImgBtn = document.getElementById('copyImgBtn');
   const $shareImgBtn = document.getElementById('shareImgBtn');
   const $modalHint = document.getElementById('modalHint');
   let shotFile = null;
 
   // `(hover: none)` alone misses some devices; maxTouchPoints is the reliable half
   const isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  // Chrome/Edge/Safari support writing an image straight to the system
+  // clipboard; Firefox desktop does not (as of this writing). Feature-detect
+  // rather than sniff — the "공유" button (Web Share) was copying only the
+  // title text on platforms without file-sharing support, so this gives a
+  // second, more reliable path to an actual image.
+  const canCopyImage = !!(navigator.clipboard?.write && window.ClipboardItem);
+  window.__canCopyImage = canCopyImage;   // dev/test.html hook
 
   function closeModal() {
     $modal.hidden = true;
@@ -1360,7 +1479,7 @@
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$modal.hidden) closeModal(); });
 
   document.getElementById('shotBtn').addEventListener('click', async (e) => {
-    if (!selected.size) return toast('먼저 모디파이어를 선택하세요');
+    if (!selected.size) return toast(t('toastPickFirst'));
     const btn = e.currentTarget;
     btn.disabled = true;
     try {
@@ -1375,15 +1494,14 @@
       shotFile = new File([blob], name, { type: 'image/png' });
 
       const canShare = navigator.canShare?.({ files: [shotFile] }) ?? false;
+      $copyImgBtn.hidden = !canCopyImage;
       $shareImgBtn.hidden = !canShare;
-      $modalHint.textContent = isTouch
-        ? '이미지를 길게 눌러 저장하거나, 아래 버튼을 쓰세요'
-        : '이미지를 우클릭해 저장하거나, 아래 버튼을 쓰세요';
+      $modalHint.textContent = isTouch ? t('hintTouch') : canCopyImage ? t('hintCopy') : t('hintPlain');
 
       $modal.hidden = false;
       document.getElementById('modalClose').focus();
     } catch (err) {
-      toast('이미지 생성 실패: ' + err.message);
+      toast(t('toastImgFail', { msg: err.message }));
     } finally {
       btn.disabled = false;
     }
@@ -1400,9 +1518,21 @@
   $shareImgBtn.addEventListener('click', async () => {
     if (!shotFile) return;
     try {
-      await navigator.share({ files: [shotFile], title: 'KORD BREACH 조합' });
+      await navigator.share({ files: [shotFile], title: t('shareTitle') });
     } catch (err) {
-      if (err.name !== 'AbortError') toast('공유 실패: ' + err.message);
+      if (err.name !== 'AbortError') toast(t('toastShareFail', { msg: err.message }));
+    }
+  });
+
+  $copyImgBtn.addEventListener('click', async () => {
+    if (!shotFile) return;
+    try {
+      // ClipboardItem needs the exact same MIME type as its key; shotFile is
+      // already 'image/png' (see the toBlob call above).
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': shotFile })]);
+      toast(t('toastCopyImgOk'));
+    } catch (err) {
+      toast(t('toastCopyImgFail', { msg: err.message }));
     }
   });
 
@@ -1410,9 +1540,9 @@
     const url = shareUrl();
     try {
       await navigator.clipboard.writeText(url);   // absent on file:// / http://
-      toast('링크가 복사됨');
+      toast(t('toastLinkCopied'));
     } catch {
-      prompt('아래 주소를 복사하세요', url);
+      prompt(t('toastLinkPrompt'), url);
     }
   });
 

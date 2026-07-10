@@ -68,11 +68,63 @@ window.addEventListener('load', async () => {
   $('#onlyBtn').click();
   chk($('#sec-global').hidden === false, 'onlyMode off restores global section');
 
-  // language toggle
+  // ---- language selector (ko/ja/en) ------------------------------------
+  const langBtn = (code) => document.querySelector(`.lang-btn[data-lang="${code}"]`);
+  const pressedLang = () => langBtn('ko').getAttribute('aria-pressed') === 'true' ? 'ko'
+    : langBtn('ja').getAttribute('aria-pressed') === 'true' ? 'ja' : 'en';
+
   chk(document.body.classList.contains('lang-ko'), 'starts in ko');
-  $('#langBtn').click();
-  chk(document.body.classList.contains('lang-en'), 'toggles to en');
-  $('#langBtn').click();
+  chk(pressedLang() === 'ko', 'ko button pressed by default');
+  chk($('#onlyBtn').textContent === '선택만', 'chrome text starts korean');
+
+  langBtn('ja').click();
+  chk(document.body.classList.contains('lang-ja'), 'switches to lang-ja');
+  chk(pressedLang() === 'ja', 'ja button now pressed');
+  chk($('#onlyBtn').textContent === '選択のみ', 'chrome text switches to japanese: ' + $('#onlyBtn').textContent);
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ja-name')).display !== 'none',
+      'ja-name visible in ja mode');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ko-name')).display === 'none',
+      'ko-name hidden in ja mode');
+  chk(cardByName('KAPPA PROTOCOL').querySelector('.ja-name').textContent === 'カッパプロトコル', 'ja-name text correct');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ja')).display === 'block', 'ja body visible');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ko')).display === 'none', 'ko body hidden in ja mode');
+  chk($('#brandName').textContent === 'NJMG', 'brand name shows NJMG in ja: ' + $('#brandName').textContent);
+  let stored = null;
+  try { stored = localStorage.getItem('kord-breach-lang'); } catch {}
+  chk(stored === 'ja', 'language persisted to localStorage: ' + stored);
+
+  langBtn('en').click();
+  chk(document.body.classList.contains('lang-en'), 'switches to lang-en');
+  chk($('#onlyBtn').textContent === 'Selected only', 'chrome text switches to english');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ko-name')).display === 'none',
+      'ko-name hidden in en mode');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('.ja-name')).display === 'none',
+      'ja-name hidden in en mode too — english has no separate title annotation');
+  chk(getComputedStyle(cardByName('KAPPA PROTOCOL').querySelector('ul.desc')).display === 'block',
+      'english bullet list visible in en mode');
+  chk(cardByName('KAPPA PROTOCOL').querySelector('h3').textContent === 'KAPPA PROTOCOL',
+      'h3 (the game\'s own title) is unchanged across languages');
+  chk(/^Debuffs \+\d+/.test($('#meterDetail').textContent), 'meter detail template in english: ' + $('#meterDetail').textContent);
+  chk($('#brandName').textContent === 'NJMG', 'brand name shows NJMG in en: ' + $('#brandName').textContent);
+
+  // exclusion veil text + axis label follow the language too. The visible
+  // message is the short veilOpposite/veilGuess string; "Cannot combine
+  // with {name}" only appears in the card's title tooltip.
+  click('THROMBOPHILIA');
+  const hemoCard = cardByName('HEMOPHILIA');
+  chk(hemoCard.querySelector('.block-msg').firstChild.textContent === 'Opposite effect picked',
+      'veil message in english: ' + hemoCard.querySelector('.block-msg').firstChild.textContent);
+  chk(/Bleeding chance/.test(hemoCard.querySelector('.block-msg small').textContent),
+      'veil axis label in english');
+  chk(/Cannot combine with/.test(hemoCard.title), 'veil tooltip in english: ' + hemoCard.title);
+  click('THROMBOPHILIA');
+
+  langBtn('ko').click();
+  chk(document.body.classList.contains('lang-ko'), 'back to lang-ko');
+  chk(pressedLang() === 'ko', 'ko button pressed again');
+  chk($('#onlyBtn').textContent === '선택만', 'chrome text back to korean');
+  try { stored = localStorage.getItem('kord-breach-lang'); } catch {}
+  chk(stored === 'ko', 'localStorage updated back to ko');
 
   // max-budget build: every handicap on, kappa on -> 13 left
   $('#resetBtn').click();
@@ -280,7 +332,7 @@ window.addEventListener('load', async () => {
   // ---- bottom sheet ----------------------------------------------------
   // There must be exactly one toolbar and one set of button ids, wherever it lives.
   chk(document.querySelectorAll('.tools').length === 1, 'exactly one .tools node');
-  for (const id of ['langBtn','onlyBtn','shotBtn','shareBtn','resetBtn'])
+  for (const id of ['onlyBtn','shotBtn','shareBtn','resetBtn'])
     chk(document.querySelectorAll('#' + id).length === 1, `single #${id}`);
   chk($('#sheet') !== null, 'sheet present in DOM');
   chk($('#sheetPicks') !== null, 'sheet has its own picks container');
@@ -407,6 +459,15 @@ window.addEventListener('load', async () => {
     click('KAPPA PROTOCOL');
     const cv2 = await window.__renderShareImage(2);
     chk(cv2.height > h3, 'canvas grows with an extra row (' + h3 + ' -> ' + cv2.height + ')');
+
+    // renders cleanly in ja/en too (wrapText, nameFor, t() all in play here)
+    for (const code of ['ja', 'en']) {
+      document.querySelector(`.lang-btn[data-lang="${code}"]`).click();
+      const cvL = await window.__renderShareImage(2);
+      chk(cvL instanceof HTMLCanvasElement, `share image renders in ${code}`);
+      chk(cvL.width === 860 * 2, `share image width stable in ${code}`);
+    }
+    document.querySelector('.lang-btn[data-lang="ko"]').click();
   } catch (e) {
     chk(false, 'share image threw: ' + e.message);
   }
@@ -421,6 +482,24 @@ window.addEventListener('load', async () => {
   chk($('#dlBtn') !== null, 'download button present');
   chk(getComputedStyle($('#shotImg')).webkitTouchCallout !== 'none',
       'long-press menu not suppressed on the image');
+
+  // ---- copy image to clipboard -----------------------------------------
+  if (window.__canCopyImage) {
+    chk(!$('#copyImgBtn').hidden, 'copy-image button shown when the Clipboard API supports it');
+    const calls = [];
+    const originalWrite = navigator.clipboard.write;
+    navigator.clipboard.write = async (items) => { calls.push(items); };
+    $('#copyImgBtn').click();
+    await waitFor(() => calls.length > 0);
+    navigator.clipboard.write = originalWrite;   // restore immediately, win or lose
+    chk(calls.length === 1, 'clicking 이미지 복사 calls clipboard.write once');
+    const item = calls[0]?.[0];
+    chk(item instanceof ClipboardItem, 'passes a ClipboardItem');
+    chk(!!item?.types?.includes('image/png'), 'ClipboardItem declares image/png');
+  } else {
+    chk($('#copyImgBtn').hidden, 'copy-image button hidden when the Clipboard API lacks image support');
+  }
+
   $('#modalClose').click();
   chk($('#modal').hidden, 'modal closes via ×');
   chk(!$('#shotImg').getAttribute('src'), 'preview src released on close');

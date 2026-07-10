@@ -101,6 +101,97 @@ window.addEventListener('load', async () => {
     ['BUSHBORNE', '부시본 (하이드 온 부쉬)'], ['INCOMPETENT', '무능'], ['DR. JEKYLL', '지킬박사'],
   ]) chk(koTitle(en) === ko, `ko title ${en} = ${ko} (got ${koTitle(en)})`);
 
+  // ---- exclusions ------------------------------------------------------
+  $('#resetBtn').click();
+  const veil = n => cardByName(n).querySelector('.block-msg').textContent;
+  const blocked = n => cardByName(n).classList.contains('blocked');
+
+  chk(EXCLUSIONS.length === 7, '7 exclusion pairs');
+  chk(EXCLUSIONS.every(e => e.a >= 7 && e.b <= 36), 'exclusions only cover selectable ids');
+  chk(document.querySelectorAll('.card.blocked').length === 0, 'nothing blocked on a clean slate');
+
+  // an "opposite" pair: picking one veils the other, both directions
+  click('THROMBOPHILIA');                       // -2, bleeding down
+  chk(blocked('HEMOPHILIA'), 'HEMOPHILIA blocked by THROMBOPHILIA');
+  chk(veil('HEMOPHILIA').startsWith('상반된 효과 선택됨'), 'opposite veil text: ' + veil('HEMOPHILIA'));
+  chk(/출혈 확률/.test(veil('HEMOPHILIA')), 'veil names the axis');
+  chk(!cardByName('HEMOPHILIA').classList.contains('guess'), 'opposite pair is not a guess');
+  chk(cardByName('HEMOPHILIA').getAttribute('aria-disabled') === 'true', 'blocked card aria-disabled');
+  {
+    // the message must be readable: card contents faded, veil covering the card
+    const c = cardByName('HEMOPHILIA');
+    chk(parseFloat(getComputedStyle(c.querySelector('.body')).opacity) < 0.3,
+        'blocked card body faded out');
+    const cr = c.getBoundingClientRect(), vr = c.querySelector('.block-veil').getBoundingClientRect();
+    chk(Math.abs(cr.width - vr.width) < 2 && Math.abs(cr.height - vr.height) < 2,
+        'veil covers the whole card');
+    chk(getComputedStyle(c.querySelector('.block-veil')).display === 'flex', 'veil is shown');
+  }
+
+  // clicking a blocked card must not select it
+  const before = bal();
+  click('HEMOPHILIA');
+  chk(bal() === before, 'clicking a blocked card changes nothing');
+  chk(!cardByName('HEMOPHILIA').classList.contains('on'), 'blocked card did not turn on');
+
+  // releasing the blocker un-veils it
+  click('THROMBOPHILIA');
+  chk(!blocked('HEMOPHILIA'), 'un-blocked once the opposite is deselected');
+  chk(document.querySelectorAll('.card.blocked').length === 0, 'no veils left');
+
+  // and it works from the other side too
+  click('HEMOPHILIA');
+  chk(blocked('THROMBOPHILIA'), 'exclusion is symmetric');
+  click('HEMOPHILIA');
+
+  // one modifier can block two others (YOUTH)
+  click('YOUTH');
+  chk(blocked('CHRONIC FATIGUE SYNDROME') && blocked('EXHAUSTION'), 'YOUTH blocks both its opposites');
+  chk(!blocked('POLYPHAGIA'), 'YOUTH does not block a same-direction perk');
+  click('YOUTH');
+
+  // the 'guess' pair is worded differently
+  click('AVERAGE');
+  chk(blocked('INCOMPETENT'), 'INCOMPETENT blocked by AVERAGE');
+  chk(cardByName('INCOMPETENT').classList.contains('guess'), 'guess pair flagged');
+  chk(veil('INCOMPETENT').startsWith('추측하기론 동시 선택 안될듯'), 'guess veil text: ' + veil('INCOMPETENT'));
+  click('AVERAGE');
+
+  // pairs the analysis deliberately left out must stay selectable together
+  click('MARATHON RUNNER'); click('EXHAUSTION');
+  chk(cardByName('MARATHON RUNNER').classList.contains('on') &&
+      cardByName('EXHAUSTION').classList.contains('on'),
+      'MARATHON RUNNER + EXHAUSTION coexist (different axes)');
+  $('#resetBtn').click();
+  click('SPRINTER'); click('THIRD LEG');
+  chk(cardByName('SPRINTER').classList.contains('on') && cardByName('THIRD LEG').classList.contains('on'),
+      'SPRINTER + THIRD LEG coexist');
+  $('#resetBtn').click();
+  click('THE TARKOV SHOOTER'); click('INCOMPETENT');
+  chk(cardByName('THE TARKOV SHOOTER').classList.contains('on') &&
+      cardByName('INCOMPETENT').classList.contains('on'),
+      'TARKOV SHOOTER + INCOMPETENT coexist (bolt-action is excluded)');
+  $('#resetBtn').click();
+
+  // A link naming both halves of a pair must be sanitised, not rendered.
+  // ids 18 (THROMBOPHILIA) and 24 (HEMOPHILIA) => bits 11 and 17.
+  const conflictCode = (2 ** 11 + 2 ** 17).toString(36);
+  location.hash = `#b=${conflictCode}`;
+  await new Promise(r => setTimeout(r, 60));            // hashchange is async
+  const onNow = [...document.querySelectorAll('button.card.on')]
+    .map(c => c.querySelector('h3').textContent);
+  chk(onNow.length === 1 && onNow[0] === 'THROMBOPHILIA',
+      'conflicting link keeps only the first: ' + onNow);
+  chk(blocked('HEMOPHILIA'), 'the dropped half shows its veil');
+
+  location.hash = '';
+  $('#resetBtn').click();
+
+  // ---- version ---------------------------------------------------------
+  chk(typeof APP_VERSION === 'string' && APP_VERSION.length > 0, 'APP_VERSION defined');
+  chk($('#verTag').textContent === `v${APP_VERSION}`, 'header shows v' + APP_VERSION);
+  chk($('#verFoot').textContent === `버전 ${APP_VERSION}`, 'footer shows the version');
+
   // ---- promo banner ---------------------------------------------------
   const promo = $('.promo');
   chk(promo !== null, 'promo banner present');

@@ -16,7 +16,9 @@
 // Three source PNGs were cropped mid-sentence (09/28/32); their Korean lines
 // were completed by the translator rather than read off the image.
 
-//
+// Bumped by hand. Shown in the header, the share image, and the footer.
+const APP_VERSION = '0.9';
+
 // koName is a translation of the modifier's TITLE. Unlike `ko` (the body text),
 // it does not appear anywhere in the source images — the overlays only ever
 // translated the description lines. These titles are ours, not BSG's.
@@ -139,3 +141,28 @@ const MODIFIERS = [
 // Each `id` matches the `NN_` prefix of its source block in
 // source/blocks/ and its icon key in icons.js (built by
 // build_icons.py from those same files).
+
+// Modifiers that cannot be taken together.
+//
+//   kind: 'opposite' — the two move the same stat in opposite directions.
+//                      Read straight off the effect text; not a judgement call.
+//   kind: 'guess'    — they contradict each other but the game's actual rule
+//                      is unconfirmed. Said so in the UI rather than pretending.
+//
+// Deliberately NOT listed, because the effects sit on different axes:
+//   MARATHON RUNNER (stamina *drain*)  vs EXHAUSTION (stamina *recovery*)
+//   SPRINTER (running speed)           vs THIRD LEG (movement speed)
+//   THE TARKOV SHOOTER                 vs INCOMPETENT — the latter says
+//                                         "Excluding Bolt-action Rifles", so
+//                                         they are designed to coexist
+//   KAPPA PROTOCOL                     vs BROKEN SECURE CONTAINER — you can
+//                                         receive Kappa and have it restricted
+const EXCLUSIONS = [
+  { a: 18, b: 24, kind: 'opposite', axis: '출혈 확률' },        // THROMBOPHILIA / HEMOPHILIA
+  { a: 21, b: 25, kind: 'opposite', axis: '골절·낙하 피해' },   // STURDY BONES / OSTEOPOROSIS
+  { a: 19, b: 29, kind: 'opposite', axis: '수분 소모' },        // HYPODIPSIA / POLYDIPSIA
+  { a: 20, b: 30, kind: 'opposite', axis: '에너지 소모' },      // POLYPHAGIA / CHRONIC FATIGUE
+  { a: 12, b: 30, kind: 'opposite', axis: '에너지 소모' },      // YOUTH / CHRONIC FATIGUE
+  { a: 12, b: 26, kind: 'opposite', axis: '팔·다리 스태미너' }, // YOUTH / EXHAUSTION
+  { a: 22, b: 28, kind: 'guess',    axis: '스킬 레벨 상한' },   // AVERAGE / INCOMPETENT
+];

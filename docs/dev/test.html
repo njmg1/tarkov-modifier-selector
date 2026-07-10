@@ -209,6 +209,27 @@ window.addEventListener('load', async () => {
   } catch (e) {
     chk(false, 'share image threw: ' + e.message);
   }
+
+  // ---- image preview modal --------------------------------------------
+  chk($('#modal').hidden, 'modal starts hidden');
+  $('#shotBtn').click();
+  await new Promise(r => setTimeout(r, 300));      // render + toBlob are async
+  chk(!$('#modal').hidden, 'modal opens after 이미지 저장');
+  chk(/^data:image\/png;base64,/.test($('#shotImg').src), 'preview img is a data URI');
+  chk($('#shotImg').naturalWidth > 0, 'preview img decoded');
+  chk($('#dlBtn') !== null, 'download button present');
+  chk(getComputedStyle($('#shotImg')).webkitTouchCallout !== 'none',
+      'long-press menu not suppressed on the image');
+  $('#modalClose').click();
+  chk($('#modal').hidden, 'modal closes via ×');
+  chk(!$('#shotImg').getAttribute('src'), 'preview src released on close');
+
+  // empty selection must not open the modal
+  $('#resetBtn').click();
+  $('#shotBtn').click();
+  await new Promise(r => setTimeout(r, 120));
+  chk($('#modal').hidden, 'modal stays shut with nothing selected');
+
   $('#resetBtn').click();
 
   document.title = fail ? `${fail} FAILURES` : 'ALL PASS';

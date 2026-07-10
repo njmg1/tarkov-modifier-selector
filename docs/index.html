@@ -391,6 +391,52 @@
   }
   footer code { font: 11px/1 var(--mono); color: var(--text-dim); }
 
+  /* ------------------------------------------------------------ modal */
+  .modal {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(6,8,7,.82); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal[hidden] { display: none; }
+  .modal-in {
+    display: flex; flex-direction: column; max-width: 900px; max-height: 100%;
+    background: var(--panel); border: 1px solid var(--line-hi); border-radius: 4px;
+    overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 {
+    margin: 0; font: 600 12px/1 var(--sans); letter-spacing: .2em; color: var(--text-dim);
+  }
+  .modal-x {
+    margin-left: auto; width: 30px; height: 30px; padding: 0;
+    background: transparent; border: 1px solid var(--line); border-radius: 3px;
+    color: var(--text-dim); font: 400 18px/1 var(--sans); cursor: pointer;
+  }
+  .modal-x:hover { color: var(--text); border-color: var(--line-hi); }
+
+  .modal-img { overflow: auto; padding: 12px; background: var(--bg); }
+  /* -webkit-touch-callout must stay ON: the long-press "사진에 저장" menu is
+     how you save this on iOS, where <a download> just dumps it into Files. */
+  .modal-img img {
+    display: block; max-width: 100%; height: auto; border-radius: 2px;
+    -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto;
+  }
+
+  .modal-foot {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    justify-content: flex-end;
+    padding: 12px 14px; border-top: 1px solid var(--line);
+  }
+  .modal-foot .hint { font-size: 12px; color: var(--text-faint); margin-right: auto; }
+  .modal-foot .tool { padding: 9px 16px; }
+  @media (max-width: 560px) {
+    /* let the buttons sit on one line and drop the hint underneath */
+    .modal-foot .hint { order: 2; flex: 1 0 100%; margin: 2px 0 0; text-align: center; }
+  }
+
   .toast {
     position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
     background: var(--panel-2); border: 1px solid var(--line-hi); border-radius: 3px;
@@ -496,6 +542,21 @@
     선택 상태는 브라우저에 저장되고 URL <code>#b=…</code> 로도 공유됩니다.
     수치는 시즌 시작 전 변경될 수 있습니다.
   </footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-in" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">조합 이미지</h2>
+      <button class="modal-x" id="modalClose" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-img"><img id="shotImg" alt="선택한 모디파이어 조합"></div>
+    <div class="modal-foot">
+      <span class="hint" id="modalHint">이미지를 길게 눌러 저장할 수 있습니다</span>
+      <button class="tool" id="shareImgBtn" hidden>공유</button>
+      <button class="tool" id="dlBtn">다운로드</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -965,24 +1026,74 @@
     toast('초기화됨');
   });
 
+  // ------------------------------------------------------------ image modal
+  // iOS Safari ignores <a download> and drops the file into Files rather than
+  // Photos, so the image is shown first: long-press gives "사진에 저장", and
+  // the Web Share sheet is offered where it exists.
+  const $modal = document.getElementById('modal');
+  const $shotImg = document.getElementById('shotImg');
+  const $dlBtn = document.getElementById('dlBtn');
+  const $shareImgBtn = document.getElementById('shareImgBtn');
+  const $modalHint = document.getElementById('modalHint');
+  let shotFile = null;
+
+  // `(hover: none)` alone misses some devices; maxTouchPoints is the reliable half
+  const isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+
+  function closeModal() {
+    $modal.hidden = true;
+    $shotImg.removeAttribute('src');
+    shotFile = null;
+    document.getElementById('shotBtn').focus();
+  }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  $modal.addEventListener('click', (e) => { if (e.target === $modal) closeModal(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$modal.hidden) closeModal(); });
+
   document.getElementById('shotBtn').addEventListener('click', async (e) => {
     if (!selected.size) return toast('먼저 모디파이어를 선택하세요');
     const btn = e.currentTarget;
     btn.disabled = true;
     try {
       const cv = await renderShareImage();
+      const name = `kord-breach-${encode()}.png`;
+
+      // data URI, not blob: — Safari's long-press menu is far more reliable with it
+      $shotImg.src = cv.toDataURL('image/png');
+      $shotImg.width = cv.width / 2;
+
       const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
-      const url = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement('a'), {
-        href: url, download: `kord-breach-${encode()}.png`,
-      });
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('이미지를 저장했습니다');
+      shotFile = new File([blob], name, { type: 'image/png' });
+
+      const canShare = navigator.canShare?.({ files: [shotFile] }) ?? false;
+      $shareImgBtn.hidden = !canShare;
+      $modalHint.textContent = isTouch
+        ? '이미지를 길게 눌러 저장하거나, 아래 버튼을 쓰세요'
+        : '이미지를 우클릭해 저장하거나, 아래 버튼을 쓰세요';
+
+      $modal.hidden = false;
+      document.getElementById('modalClose').focus();
     } catch (err) {
       toast('이미지 생성 실패: ' + err.message);
     } finally {
       btn.disabled = false;
+    }
+  });
+
+  $dlBtn.addEventListener('click', () => {
+    if (!shotFile) return;
+    const url = URL.createObjectURL(shotFile);
+    const a = Object.assign(document.createElement('a'), { href: url, download: shotFile.name });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);   // Safari needs the URL alive past click()
+  });
+
+  $shareImgBtn.addEventListener('click', async () => {
+    if (!shotFile) return;
+    try {
+      await navigator.share({ files: [shotFile], title: 'KORD BREACH 조합' });
+    } catch (err) {
+      if (err.name !== 'AbortError') toast('공유 실패: ' + err.message);
     }
   });
 

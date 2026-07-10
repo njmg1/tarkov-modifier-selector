@@ -162,7 +162,7 @@ const MODIFIERS = [
     en: ['Become allergic to 2 random items from the Provisions or Medication category'],
     ko: ['식량 혹은 치료아이템 카테고리에서 랜덤하게 아이템 2개에 알레르기 생김 (!)'],
     ja: ['食料または治療アイテムカテゴリーからランダムに2つのアイテムにアレルギーが発生(!)'] },
-  { id: 34, cat: 'negative', name: 'BROKEN SECURE CONTAINER', koName: '파손된 시큐어 컨테이너', jaName: '破損したシークレットコンテナ', value: 4,
+  { id: 34, cat: 'negative', name: 'BROKEN SECURE CONTAINER', koName: '고장난 시큐어 컨테이너', jaName: '破損したシークレットコンテナ', value: 4,
     en: ['Secure container is restricted to cash, keys, dogtags, special equipment, and certain containers'],
     ko: ['시큐어 컨테이너 제한이 강화 - 현찰, 열쇠, 독택, 특수 아이템과 몇몇 케이스만 넣을 수 있음'],
     ja: ['シークレットコンテナの制限が強化 — 現金、鍵、ドッグタグ、特殊アイテムと一部のケースしか入れられない'] },

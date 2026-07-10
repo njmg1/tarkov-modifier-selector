@@ -74,7 +74,7 @@ events.set('Network.loadingFinished', [bump(-1)]);
 events.set('Network.loadingFailed', [bump(-1)]);
 
 const loaded = once('Page.loadEventFired');
-await send('Page.navigate', { url: `file://${resolve(page)}` });
+await send('Page.navigate', { url: page.startsWith("http") ? page : `file://${resolve(page)}` });
 await loaded;
 
 // network idle: 0 in-flight for 3 consecutive polls

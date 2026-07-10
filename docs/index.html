@@ -290,6 +290,13 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
   @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
 
+  @media (max-width: 620px) {
+    /* the rule + tally can't share a line with the heading at this width */
+    .sec-head { flex-wrap: wrap; gap: 5px 10px; }
+    .sec-head .rule { display: none; }
+    .sec-head .tally { flex: 1 0 100%; }
+  }
+
   /* ------------------------------------------------------------ card */
   .card {
     display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px;
@@ -371,6 +378,15 @@
   .ko {
     margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b9c0bc;
   }
+
+  @media (max-width: 620px) {
+    /* a wrapping title used to drag the value off the top-right corner */
+    .card { grid-template-columns: 48px 1fr; padding: 12px 46px 12px 6px; }
+    .icon { width: 44px; height: 44px; }
+    .title { flex-wrap: wrap; gap: 3px 8px; margin-bottom: 4px; }
+    .val { position: absolute; top: 13px; right: 12px; margin: 0; padding: 0; }
+    .ko-name { white-space: normal; }
+  }
   .ko .trunc {
     color: var(--warn); cursor: help; font-weight: 600;
   }
@@ -390,6 +406,75 @@
     color: var(--text-faint); font-size: 12px; line-height: 1.7;
   }
   footer code { font: 11px/1 var(--mono); color: var(--text-dim); }
+
+  /* ------------------------------------------------------------ bottom sheet */
+  .sheet { display: none; }
+
+  @media (max-width: 1080px) {
+    /* the header stacked four rows deep on a phone; flatten it */
+    .head-in { gap: 9px 14px; padding: 10px 16px; }
+    .brand b { font: 700 16px/1 var(--sans); letter-spacing: .13em; }
+    .brand small { font-size: 9px; letter-spacing: .24em; }
+    .verdict { order: 2; margin-left: auto; padding: 7px 12px; font-size: 11px; letter-spacing: .12em; }
+    .meter { order: 3; flex: 1 1 100%; min-width: 0; }
+    .meter-top { margin-bottom: 6px; font-size: 11px; }
+    .balance { font-size: 20px; }
+    header .tools { display: none; }   /* relocated into the sheet by JS */
+
+    aside { display: none !important; }
+    body { padding-bottom: 76px; }     /* clear the collapsed sheet bar */
+    .sheet { display: block; }
+  }
+
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--panel); border-top: 1px solid var(--line-hi);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.45);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sheet-bar {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 16px 16px 14px; min-height: 60px;
+    background: transparent; border: 0; color: inherit; font: inherit;
+    cursor: pointer; text-align: left;
+  }
+  .sheet-bar:focus-visible { outline: 2px solid #6e8a44; outline-offset: -3px; }
+  .sheet-chev {
+    width: 34px; height: 4px; border-radius: 2px; background: var(--line-hi);
+    position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+  }
+  .sheet-count { font: 500 13px/1 var(--sans); color: var(--text); }
+  .sheet-bal {
+    margin-left: auto; font: 500 12px/1 var(--sans); color: var(--text-dim);
+  }
+  .sheet-bal b {
+    font: 700 15px/1 var(--mono); color: var(--ok); margin-left: 5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sheet-bal b.bad { color: var(--bad); }
+  .sheet-verdict {
+    padding: 6px 10px; border-radius: 3px; border: 1px solid;
+    font: 700 10px/1 var(--sans); letter-spacing: .1em; white-space: nowrap;
+  }
+  .sheet-verdict.ok  { color: var(--ok);  border-color: #2f5c3a; background: rgba(60,140,80,.12); }
+  .sheet-verdict.bad { color: var(--bad); border-color: #6b2b25; background: rgba(190,60,50,.12); }
+
+  .sheet-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height .26s cubic-bezier(.4,0,.2,1);
+  }
+  .sheet.open .sheet-body { max-height: min(66vh, 520px); overflow-y: auto; }
+  .sheet.open .sheet-chev { background: var(--pos); }
+  .sheet .picks { padding: 0 8px 8px; }
+  .sheet .pick { padding: 11px 8px; }        /* bigger tap targets */
+  .sheet .pick .x { visibility: visible; color: var(--text-faint); }
+  .sheet .pick .v { visibility: visible; margin-right: 22px; }
+  .sheet .pick .x { transform: translateX(2px); }
+
+  .sheet-tools { padding: 12px 14px; border-top: 1px solid var(--line); }
+  /* .tools moves in here whole, so it stays a flex row of its own */
+  .sheet-tools .tools { width: 100%; }
+  .sheet-tools .tool { flex: 1 1 auto; text-align: center; padding: 11px 10px; }
 
   /* ------------------------------------------------------------ modal */
   .modal {
@@ -544,6 +629,20 @@
   </footer>
 </div>
 
+<!-- phones: the aside is hidden and this pulls up from the bottom instead -->
+<div class="sheet" id="sheet">
+  <button class="sheet-bar" id="sheetBar" aria-expanded="false" aria-controls="sheetBody">
+    <span class="sheet-chev" aria-hidden="true"></span>
+    <span class="sheet-count" id="sheetCount">0개 선택</span>
+    <span class="sheet-bal">잔여 <b id="sheetBal">0</b></span>
+    <span class="sheet-verdict ok" id="sheetVerdict">PASS</span>
+  </button>
+  <div class="sheet-body" id="sheetBody">
+    <div class="picks" id="sheetPicks"></div>
+    <div class="sheet-tools" id="sheetTools"></div>
+  </div>
+</div>
+
 <div class="modal" id="modal" hidden>
   <div class="modal-in" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
@@ -689,12 +788,14 @@
     return row;
   }
 
-  function renderPicks() {
-    $picks.replaceChildren();
+  const $sheetPicks = document.getElementById('sheetPicks');
+
+  function renderPicksInto(container) {
+    container.replaceChildren();
     const picked = SELECTABLE.filter(m => selected.has(m.id));
 
     if (!picked.length) {
-      $picks.append(el('div', 'picks-empty',
+      container.append(el('div', 'picks-empty',
         '아직 아무것도 선택하지 않았습니다.\n디버프를 켜서 포인트를 버세요.'));
       return;
     }
@@ -705,9 +806,11 @@
       const group = el('div', 'picks-group');
       group.append(el('h3', null, label));
       rows.forEach(m => group.append(buildPick(m)));
-      $picks.append(group);
+      container.append(group);
     }
   }
+  // the aside and the phone sheet show the same list; each needs its own nodes
+  const renderPicks = () => { renderPicksInto($picks); renderPicksInto($sheetPicks); };
 
   // ---------------------------------------------------------------- logic
   const $balance = document.getElementById('balance');
@@ -745,6 +848,14 @@
     document.getElementById('fCost').textContent = `−${cost}`;
     document.getElementById('fLeft').textContent = fmt(balance).replace('+', '');
     document.getElementById('fLeftRow').classList.toggle('bad', !pass);
+
+    document.getElementById('sheetCount').textContent = `${nPicked}개 선택`;
+    const $sheetBal = document.getElementById('sheetBal');
+    $sheetBal.textContent = fmt(balance).replace('+', '');
+    $sheetBal.classList.toggle('bad', !pass);
+    const $sheetVerdict = document.getElementById('sheetVerdict');
+    $sheetVerdict.textContent = pass ? 'PASS' : 'OVER';
+    $sheetVerdict.className = `sheet-verdict ${pass ? 'ok' : 'bad'}`;
 
     // bar shows spend against what you've actually unlocked, capped visually
     const denom = Math.max(gain, cost, 1);
@@ -996,6 +1107,29 @@
     return cv;
   }
   window.__renderShareImage = renderShareImage;   // dev/test.html hook
+
+  // ------------------------------------------------------------ bottom sheet
+  const $sheet = document.getElementById('sheet');
+  const $sheetBar = document.getElementById('sheetBar');
+
+  $sheetBar.addEventListener('click', () => {
+    const open = $sheet.classList.toggle('open');
+    $sheetBar.setAttribute('aria-expanded', String(open));
+  });
+
+  // One toolbar, two homes. Cloning it would duplicate ids and split the
+  // listeners, so the node itself moves when the layout crosses the breakpoint.
+  const $tools = document.querySelector('header .tools, #sheetTools .tools');
+  const $headIn = document.querySelector('.head-in');
+  const $sheetTools = document.getElementById('sheetTools');
+  const narrow = matchMedia('(max-width: 1080px)');
+
+  function placeTools() {
+    const target = narrow.matches ? $sheetTools : $headIn;
+    if ($tools.parentElement !== target) target.append($tools);
+  }
+  narrow.addEventListener('change', placeTools);
+  placeTools();
 
   // ---------------------------------------------------------------- toolbar
   const $toast = document.getElementById('toast');

@@ -81,7 +81,10 @@ window.addEventListener('load', async () => {
       'all icons wired to data URIs');
   chk(icons.every(i => getComputedStyle(i).maskImage.startsWith('url("data:image/png')),
       'computed mask-image resolves');
-  chk(icons.every(i => i.clientWidth === 56 && i.clientHeight === 56), 'icons laid out 56x56');
+  // cards shrink their icon below 620px
+  const iconSize = innerWidth <= 620 ? 44 : 56;
+  chk(icons.every(i => i.clientWidth === iconSize && i.clientHeight === iconSize),
+      `icons laid out ${iconSize}x${iconSize}`);
 
   // all three clipped source translations have been filled in
   chk(document.querySelectorAll('.ko .trunc').length === 0, 'no truncation markers left');
@@ -115,18 +118,18 @@ window.addEventListener('load', async () => {
       'promo sits above the modifier list');
 
   // ---- sidebar --------------------------------------------------------
-  const picks = () => [...document.querySelectorAll('.pick')];
+  const picks = () => [...document.querySelectorAll('#picks .pick')];
   const pickNames = () => picks().map(p => p.querySelector('.nm').textContent);
 
   $('#resetBtn').click();
-  chk($('.picks-empty') !== null, 'empty sidebar shows placeholder');
+  chk($('#picks .picks-empty') !== null, 'empty sidebar shows placeholder');
   chk(picks().length === 0, 'no pick rows when empty');
   chk($('#pickCount').textContent === '0 / 30', 'count starts 0/30');
 
   click('NO FLEA MARKET');            // +6
   click('SPRINTER');                  // -2
   chk(picks().length === 2, 'two rows listed');
-  chk($('.picks-empty') === null, 'placeholder gone');
+  chk($('#picks .picks-empty') === null, 'placeholder gone');
   chk($('#pickCount').textContent === '2 / 30', 'count 2/30');
   // handicaps group first, perks second
   chk(pickNames().join('|') === '플리마켓 금지|단거리 주자', 'grouped handicap-then-perk: ' + pickNames());
@@ -139,12 +142,25 @@ window.addEventListener('load', async () => {
   // .v and .x share one grid cell; if either loses its explicit placement the
   // value wraps onto a second row and the row grows. Compare vertical centres —
   // the two spans have different font sizes, so their offsetTops never match.
+  // The aside is display:none on phones, so every offset* reads 0 there.
+  // Geometry only means something where the thing is actually laid out.
+  const asideLaidOut = $('aside').offsetParent !== null;
   const midY = (e) => e.offsetTop + e.offsetHeight / 2;
-  chk(picks().every(p => Math.abs(midY(p.querySelector('.v')) - midY(p.querySelector('.nm'))) <= 1.5),
-      'pick value sits on the name row, not wrapped below');
-  chk(picks().every(p => p.querySelector('.v').offsetLeft > p.querySelector('.nm').offsetLeft),
-      'pick value is right of the name');
-  chk(picks().every(p => p.offsetHeight < 40), 'pick rows stay single-line');
+  if (asideLaidOut) {
+    chk(picks().every(p => Math.abs(midY(p.querySelector('.v')) - midY(p.querySelector('.nm'))) <= 1.5),
+        'pick value sits on the name row, not wrapped below');
+    chk(picks().every(p => p.querySelector('.v').offsetLeft > p.querySelector('.nm').offsetLeft),
+        'pick value is right of the name');
+    chk(picks().every(p => p.offsetHeight < 40), 'pick rows stay single-line');
+  } else {
+    // ...and on phones the same rows live in the sheet, so check those instead
+    const rows = [...document.querySelectorAll('#sheetPicks .pick')];
+    chk(rows.length > 0, 'sheet has rows on phone');
+    chk(rows.every(p => Math.abs(midY(p.querySelector('.v')) - midY(p.querySelector('.nm'))) <= 1.5),
+        'sheet pick value sits on the name row');
+    chk(rows.every(p => p.querySelector('.v').offsetLeft > p.querySelector('.nm').offsetLeft),
+        'sheet pick value is right of the name');
+  }
 
   // clicking a row deselects that modifier
   picks().find(p => p.querySelector('.nm').textContent === '단거리 주자').click();
@@ -158,7 +174,46 @@ window.addEventListener('load', async () => {
 
   $('#resetBtn').click();
   chk(bal() === '0', 'reset back to 0');
-  chk($('.picks-empty') !== null, 'sidebar empty again after reset');
+  chk($('#picks .picks-empty') !== null, 'sidebar empty again after reset');
+
+  // ---- bottom sheet ----------------------------------------------------
+  // There must be exactly one toolbar and one set of button ids, wherever it lives.
+  chk(document.querySelectorAll('.tools').length === 1, 'exactly one .tools node');
+  for (const id of ['langBtn','onlyBtn','shotBtn','shareBtn','resetBtn'])
+    chk(document.querySelectorAll('#' + id).length === 1, `single #${id}`);
+  chk($('#sheet') !== null, 'sheet present in DOM');
+  chk($('#sheetPicks') !== null, 'sheet has its own picks container');
+
+  // the sheet list mirrors the aside list
+  $('#resetBtn').click();
+  click('NO FLEA MARKET'); click('SPRINTER');
+  const asideNames = [...document.querySelectorAll('#picks .pick .nm')].map(e => e.textContent);
+  const sheetNames = [...document.querySelectorAll('#sheetPicks .pick .nm')].map(e => e.textContent);
+  chk(asideNames.length === 2 && asideNames.join('|') === sheetNames.join('|'),
+      'sheet mirrors aside: ' + sheetNames);
+  chk($('#sheetCount').textContent === '2개 선택', 'sheet count: ' + $('#sheetCount').textContent);
+  chk($('#sheetBal').textContent === '4', 'sheet balance 4 (got ' + $('#sheetBal').textContent + ')');
+  chk($('#sheetVerdict').textContent === 'PASS', 'sheet verdict PASS');
+
+  // a row in the sheet deselects, same as the aside
+  document.querySelector('#sheetPicks .pick').click();
+  chk(document.querySelectorAll('#sheetPicks .pick').length === 1, 'sheet row click removes');
+  chk(document.querySelectorAll('#picks .pick').length === 1, 'aside stayed in sync');
+
+  click('KAPPA PROTOCOL');
+  chk($('#sheetVerdict').textContent === 'OVER', 'sheet verdict OVER when overspent');
+  chk($('#sheetBal').classList.contains('bad'), 'sheet balance flagged bad');
+
+  // expand / collapse
+  chk(!$('#sheet').classList.contains('open'), 'sheet starts collapsed');
+  chk($('#sheetBar').getAttribute('aria-expanded') === 'false', 'aria-expanded false');
+  $('#sheetBar').click();
+  chk($('#sheet').classList.contains('open'), 'sheet opens on bar tap');
+  chk($('#sheetBar').getAttribute('aria-expanded') === 'true', 'aria-expanded true');
+  $('#sheetBar').click();
+  chk(!$('#sheet').classList.contains('open'), 'sheet collapses again');
+
+  $('#resetBtn').click();
 
   // ---- section subtitles ----------------------------------------------
   const subs = [...document.querySelectorAll('.sec-ko')].map(e => e.textContent);
@@ -231,6 +286,25 @@ window.addEventListener('load', async () => {
   chk($('#modal').hidden, 'modal stays shut with nothing selected');
 
   $('#resetBtn').click();
+
+  // ---- layout sanity ---------------------------------------------------
+  // Nothing may push the page sideways, at any width we support.
+  chk(document.documentElement.scrollWidth <= innerWidth + 1,
+      `no horizontal overflow (scrollWidth ${document.documentElement.scrollWidth} vs ${innerWidth})`);
+
+  // Cards must contain their own text — clipping here means a wrap went wrong.
+  const overflowing = [...document.querySelectorAll('.card')].filter(
+    c => c.scrollHeight > c.clientHeight + 1 || c.scrollWidth > c.clientWidth + 1);
+  chk(overflowing.length === 0,
+      'no card clips its content (' + overflowing.map(c => c.querySelector('h3').textContent) + ')');
+
+  // The value chip must never collide with the title text.
+  const collide = [...document.querySelectorAll('.card .val')].filter((v) => {
+    const h3 = v.closest('.title').querySelector('h3');
+    const a = v.getBoundingClientRect(), b = h3.getBoundingClientRect();
+    return a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+  });
+  chk(collide.length === 0, 'value never overlaps its title');
 
   document.title = fail ? `${fail} FAILURES` : 'ALL PASS';
   document.getElementById('OUT').textContent = '\n' + out.join('\n') + '\n';

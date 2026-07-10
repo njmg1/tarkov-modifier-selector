@@ -133,7 +133,7 @@ const MODIFIERS = [
     ko: ['다른 플레이어와의 플리마켓 거래 금지됨'] },
   { id: 36, cat: 'negative', name: 'THIRD LEG', koName: '세 번째 다리', value: 1,
     en: ['Movement speed is decreased by 1%', 'Buying items at Therapist is 5% cheaper'],
-    ko: ['이동속도 1% 감소, 테라피스트와의 거래 가격 5% 인하(?)'] },
+    ko: ['이동속도 1% 감소, 테라피스트와의 거래 가격 5% 인하(?) ("나 오늘 장사 안해")'] },
 ];
 
 // Each `id` matches the `NN_` prefix of its source block in

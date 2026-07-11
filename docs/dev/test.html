@@ -473,10 +473,19 @@ window.addEventListener('load', async () => {
   }
 
   // ---- image preview modal --------------------------------------------
+  // "이미지 저장" now first asks whether to save the build into a slot; the
+  // image renders either way. This exercises the "이미지만" (skip save) path.
+  $('#resetBtn').click();
+  click('NO FLEA MARKET');                       // a non-empty build to render
   chk($('#modal').hidden, 'modal starts hidden');
+  chk($('#saveAsk').hidden, 'save prompt starts hidden');
   $('#shotBtn').click();
+  chk(!$('#saveAsk').hidden, '이미지 저장 opens the save prompt first');
+  chk($('#modal').hidden, 'image modal not opened until the prompt is answered');
+  $('#askImgOnly').click();                       // choose image-only
+  chk($('#saveAsk').hidden, 'save prompt closes after choosing 이미지만');
   const modalOpened = await waitFor(() => !$('#modal').hidden);
-  chk(modalOpened, 'modal opens after 이미지 저장');
+  chk(modalOpened, 'modal opens after 이미지만');
   chk(/^data:image\/png;base64,/.test($('#shotImg').src), 'preview img is a data URI');
   chk($('#shotImg').naturalWidth > 0, 'preview img decoded');
   chk($('#dlBtn') !== null, 'download button present');
@@ -504,11 +513,29 @@ window.addEventListener('load', async () => {
   chk($('#modal').hidden, 'modal closes via ×');
   chk(!$('#shotImg').getAttribute('src'), 'preview src released on close');
 
-  // empty selection must not open the modal
+  // ---- save-image prompt: the "저장하고 이미지" (save into a slot) path ----
+  try { localStorage.removeItem('kord-breach-slots'); } catch {}
+  $('#resetBtn').click();
+  click('NO FLEA MARKET');
+  $('#shotBtn').click();
+  chk(!$('#saveAsk').hidden, 'prompt opens for 저장하고 이미지 path');
+  $('#askSaveImg').click();
+  chk(!$('#saveAskP2').hidden && $('#saveAskP1').hidden, '저장하고 이미지 reveals the slot picker');
+  const pickBtns = [...document.querySelectorAll('#slotPick button')];
+  chk(pickBtns.length === 3, 'slot picker offers all three slots');
+  pickBtns[0].click();
+  chk($('#saveAsk').hidden, 'picking a slot closes the prompt');
+  const slotsAfterPick = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(slotsAfterPick?.[0] && typeof slotsAfterPick[0].code === 'string', '저장하고 이미지 saved into the chosen slot');
+  chk(await waitFor(() => !$('#modal').hidden), 'and the image modal still opens afterward');
+  $('#modalClose').click();
+  try { localStorage.removeItem('kord-breach-slots'); } catch {}
+
+  // empty selection must not open the prompt or the modal
   $('#resetBtn').click();
   $('#shotBtn').click();
   await new Promise(r => setTimeout(r, 120));
-  chk($('#modal').hidden, 'modal stays shut with nothing selected');
+  chk($('#modal').hidden && $('#saveAsk').hidden, 'nothing opens with nothing selected');
 
   $('#resetBtn').click();
 
@@ -546,38 +573,66 @@ window.addEventListener('load', async () => {
   chk($('#toast').textContent === '랜덤 조합을 뽑았습니다', 'random roll toasts: ' + $('#toast').textContent);
   $('#resetBtn').click();
 
-  // ---- presets (read-only demo) ------------------------------------------
-  chk(Array.isArray(PRESETS) && PRESETS.length >= 1, 'at least one demo preset exists');
+  // ---- save slots --------------------------------------------------------
+  // Three localStorage slots replace the old read-only demo presets. Saving a
+  // slot is also what reports to the sheet; SHEET_URL is empty in this build,
+  // so sendToSheet is a no-op and we test only the slot/UI half.
+  try { localStorage.removeItem('kord-breach-slots'); } catch {}
+  $('#resetBtn').click();
+
   chk($('#presetModal').hidden, 'preset panel starts closed');
   $('#presetBtn').click();
   chk(!$('#presetModal').hidden, 'preset panel opens');
-  const presetRows = [...document.querySelectorAll('.preset-row')];
-  chk(presetRows.length === PRESETS.length, `one row per preset (${presetRows.length})`);
-  chk(presetRows[0].querySelector('.preset-name').textContent === PRESETS[0].name.ko,
-      'preset name shown in korean by default');
-  chk($('#presetSaveBtn').disabled, 'save-as-new-preset is a disabled placeholder (not built yet)');
-  chk($('#presetSaveBtn').title.length > 0, 'disabled save button explains itself via title');
+  let slotRows = [...document.querySelectorAll('.preset-row')];
+  chk(slotRows.length === 3, `three save slots (${slotRows.length})`);
+  chk(slotRows.every(r => r.querySelector('.preset-name.empty')), 'all slots start empty');
+  chk(!$('#presetSaveBtn').disabled, 'save button is enabled (no longer a placeholder)');
 
-  presetRows[0].querySelector('.preset-apply').click();
-  chk($('#presetModal').hidden, 'applying a preset closes the panel');
-  const appliedIds = currentSelectionIds().sort((a, b) => a - b);
-  const expectedIds = [...PRESETS[0].ids].sort((a, b) => a - b);
-  chk(JSON.stringify(appliedIds) === JSON.stringify(expectedIds),
-      `applied preset matches its ids (${appliedIds} vs ${expectedIds})`);
-  const presetSum = appliedIds.reduce((s, id) => s + byId.get(id).value, 0);
-  chk(presetSum === 0, `demo preset itself balances to exactly 0 (got ${presetSum})`);
-  chk(/적용됨/.test($('#toast').textContent), 'applying a preset toasts: ' + $('#toast').textContent);
+  // build something, save it into slot 2 via that empty row's "여기 저장"
+  click('NO FLEA MARKET');                        // +6
+  click('KAPPA PROTOCOL');                        // -21
+  const savedIds = currentSelectionIds().sort((a, b) => a - b);
+  slotRows[1].querySelector('button').click();    // empty row's only button
+  chk(/저장됨/.test($('#toast').textContent), 'saving a slot toasts 저장됨: ' + $('#toast').textContent);
+  let slots = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(slots?.[1] && typeof slots[1].code === 'string', 'slot 2 persisted with a build code');
+  chk(!slots[0] && !slots[2], 'only the chosen slot was written');
 
-  // panel dismissal: backdrop click (e.target === the overlay itself, not
-  // the inner dialog) and the × button
+  // the filled row now shows a timestamp name and load/overwrite/clear
+  slotRows = [...document.querySelectorAll('.preset-row')];
+  chk(!slotRows[1].querySelector('.preset-name.empty'), 'saved slot is no longer marked empty');
+  chk(slotRows[1].querySelectorAll('button').length === 3, 'saved slot exposes load/overwrite/clear');
+
+  // reset, then Load slot 2 restores the saved build and closes the panel
+  $('#resetBtn').click();
+  chk(currentSelectionIds().length === 0, 'reset cleared the selection');
   $('#presetBtn').click();
+  slotRows = [...document.querySelectorAll('.preset-row')];
+  slotRows[1].querySelector('button').click();    // first button on a filled row = 불러오기
+  chk($('#presetModal').hidden, 'loading a slot closes the panel');
+  chk(JSON.stringify(currentSelectionIds().sort((a, b) => a - b)) === JSON.stringify(savedIds),
+      'loaded slot restores the saved build');
+
+  // footer "현재 조합 저장" fills the first empty slot (slot 1 here)
+  $('#presetBtn').click();
+  $('#presetSaveBtn').click();
+  slots = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(slots[0] && typeof slots[0].code === 'string', 'footer save fills the first empty slot');
+
+  // clearing slot 2 empties it (last button on the row = 비우기)
+  slotRows = [...document.querySelectorAll('.preset-row')];
+  [...slotRows[1].querySelectorAll('button')].pop().click();
+  slots = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(!slots[1], 'clearing empties the slot');
+
+  // panel dismissal: backdrop click (target === the overlay itself) and ×
   $('#presetModal').dispatchEvent(new MouseEvent('click', { bubbles: true }));
   chk($('#presetModal').hidden, 'preset panel closes on backdrop click');
-
   $('#presetBtn').click();
   $('#presetClose').click();
   chk($('#presetModal').hidden, 'preset panel closes via ×');
 
+  try { localStorage.removeItem('kord-breach-slots'); } catch {}
   $('#resetBtn').click();
 
   // ---- layout sanity ---------------------------------------------------

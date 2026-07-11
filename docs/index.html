@@ -599,18 +599,26 @@
 
   /* ------------------------------------------------------------ presets */
   .preset-in { width: 420px; max-width: 100%; }
+  .preset-hint { padding: 10px 14px 2px; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
   .preset-list { padding: 8px; max-height: min(60vh, 420px); overflow-y: auto; }
   .preset-row {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 8px;
     padding: 11px 10px; border-radius: 3px;
   }
   .preset-row:hover { background: var(--panel-2); }
-  .preset-name { font-size: 13px; color: var(--text); }
-  .preset-apply { margin-left: auto; padding: 7px 14px; flex: 0 0 auto; }
-  /* the save button is a visible placeholder for work not built yet, not a
-     bug — disabled state makes that unambiguous rather than hiding it */
-  #presetSaveBtn { width: 100%; text-align: center; opacity: .55; cursor: not-allowed; }
-  #presetSaveBtn:hover { background: var(--panel); color: var(--text-dim); }
+  .preset-name { font-size: 13px; color: var(--text); min-width: 0; }
+  .preset-name.empty { color: var(--text-dim); font-style: italic; }
+  .preset-name .slot-tag { color: var(--text-dim); font-style: normal; margin-right: 6px; }
+  .preset-row .spacer { margin-left: auto; }
+  .preset-row .tool { padding: 6px 11px; flex: 0 0 auto; font-size: 12px; }
+  .preset-row .slot-clear { color: var(--text-dim); }
+  #presetSaveBtn { width: 100%; text-align: center; }
+  /* --------------------------------------------------------- save prompt */
+  .save-ask-body { padding: 14px 16px 18px; }
+  .save-ask-msg { font-size: 13px; color: var(--text-dim); line-height: 1.55; margin-bottom: 14px; }
+  .save-ask-btns, .slot-pick { display: flex; flex-direction: column; gap: 8px; }
+  .save-ask-btns .tool, .slot-pick .tool { width: 100%; text-align: center; padding: 11px; }
+  #askSaveImg { background: var(--accent, var(--panel-2)); }
 
   .toast {
     position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
@@ -755,17 +763,40 @@
   </div>
 </div>
 
-<!-- Read-only for now: applies a hardcoded build. "Save current build as a
-     preset" is not implemented yet — see PRESETS in data.js. -->
+<!-- Three save slots kept in localStorage (per browser). Saving a slot also
+     fires the build to the Google Sheet collector — see sendToSheet(). -->
 <div class="modal" id="presetModal" hidden>
   <div class="modal-in preset-in" role="dialog" aria-modal="true" aria-labelledby="presetTitle">
     <div class="modal-head">
-      <h2 id="presetTitle">프리셋</h2>
+      <h2 id="presetTitle">내 프리셋</h2>
       <button class="modal-x" id="presetClose" aria-label="닫기">×</button>
     </div>
+    <p class="preset-hint" id="presetHint">이 기기에 최대 3개까지 저장됩니다.</p>
     <div class="preset-list" id="presetList"></div>
     <div class="modal-foot">
-      <button class="tool" id="presetSaveBtn" disabled>+ 새 프리셋 저장</button>
+      <button class="tool" id="presetSaveBtn">현재 조합 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shown when "이미지 저장" is clicked: offer to save the build into a slot
+     first, then render the image either way. -->
+<div class="modal" id="saveAsk" hidden>
+  <div class="modal-in preset-in" role="dialog" aria-modal="true" aria-labelledby="saveAskTitle">
+    <div class="modal-head">
+      <h2 id="saveAskTitle">현재 조합을 저장할까요?</h2>
+      <button class="modal-x" id="saveAskClose" aria-label="닫기">×</button>
+    </div>
+    <div class="save-ask-body" id="saveAskP1">
+      <p class="save-ask-msg" id="saveAskMsg">이미지로 저장하기 전에, 이 조합을 이 기기의 슬롯에 저장할 수 있습니다.</p>
+      <div class="save-ask-btns">
+        <button class="tool" id="askImgOnly">이미지만</button>
+        <button class="tool" id="askSaveImg">저장하고 이미지</button>
+      </div>
+    </div>
+    <div class="save-ask-body" id="saveAskP2" hidden>
+      <p class="save-ask-msg" id="saveAskPick">저장할 슬롯을 고르세요</p>
+      <div class="slot-pick" id="slotPick"></div>
     </div>
   </div>
 </div>
@@ -1433,7 +1464,9 @@
     sheetLeftLbl: 'sheetLeft',
     modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
     randomBtn: 'randomBtn', presetBtn: 'presetBtn', presetTitle: 'presetPanelTitle',
-    presetSaveBtn: 'presetSaveTodo',
+    presetHint: 'presetPanelHint', presetSaveBtn: 'slotSaveCurrent',
+    saveAskTitle: 'saveAskTitle', saveAskMsg: 'saveAskMsg', saveAskPick: 'saveAskPick',
+    askImgOnly: 'askImgOnly', askSaveImg: 'askSaveImg',
   };
 
   function applyStaticText() {
@@ -1445,7 +1478,7 @@
     document.getElementById('promoChar').alt = t('promoCharAlt');
     document.getElementById('verFoot').textContent = t('footerVersion', { ver: APP_VERSION });
     document.getElementById('presetClose').setAttribute('aria-label', t('modalClose'));
-    document.getElementById('presetSaveBtn').title = t('presetSaveNote');
+    document.getElementById('saveAskClose').setAttribute('aria-label', t('modalClose'));
     // by id, not a pre-declared const: applyStaticText() runs (via the init
     // sync below) before the preset section's consts exist further down —
     // renderPresetList is a hoisted function declaration, so calling it
@@ -1520,12 +1553,14 @@
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (!$modal.hidden) closeModal();
+    else if (!document.getElementById('saveAsk').hidden) closeSaveAsk();
     else if (!document.getElementById('presetModal').hidden) closePresetPanel();
   });
 
-  document.getElementById('shotBtn').addEventListener('click', async (e) => {
-    if (!selected.size) return toast(t('toastPickFirst'));
-    const btn = e.currentTarget;
+  // Renders the share image and opens the image modal. Called after the
+  // save-or-not prompt resolves (see openSaveAsk / the shotBtn handler).
+  async function doRenderImage() {
+    const btn = document.getElementById('shotBtn');
     btn.disabled = true;
     try {
       const cv = await renderShareImage();
@@ -1550,6 +1585,13 @@
     } finally {
       btn.disabled = false;
     }
+  }
+
+  // "이미지 저장" first asks whether to save the build into a slot; the image
+  // is rendered either way (see the save-image prompt handlers below).
+  document.getElementById('shotBtn').addEventListener('click', () => {
+    if (!selected.size) return toast(t('toastPickFirst'));
+    openSaveAsk();
   });
 
   $dlBtn.addEventListener('click', () => {
@@ -1619,10 +1661,65 @@
     toast(t('toastRandomOk'));
   });
 
-  // ---------------------------------------------------------------- presets
-  // Read-only for now — applies a hardcoded build from data.js's PRESETS.
-  // "Save the current selection as a new preset" isn't built yet (see the
-  // disabled button in the panel); this just proves the apply path works.
+  // ------------------------------------------------------- presets / slots
+  // Three save slots live in localStorage (per browser). GitHub Pages has no
+  // server that could see an IP, so "per device" is as far as we can gate.
+  // The live selection is the throwaway "temp" slot (STORE_KEY, autosaved);
+  // only an explicit save into slot 1..3 is kept AND reported to the sheet.
+  const SLOTS_KEY = 'kord-breach-slots';
+  const CLIENT_KEY = 'kord-breach-cid';
+  const SLOT_COUNT = 3;
+
+  // Google Apps Script web-app URL — the stats collector. Leave empty to keep
+  // collection off. Setup: see docs/dev/sheet-collector.gs.
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzNWOKBWquO3fRhkWhRa8Z-rWDR7b1pts-wH9TcN6J1VK9AiuZyGgJWitCL9gz6RiS2/exec';
+
+  // A random, anonymous per-browser id so submissions can be grouped/deduped
+  // in the sheet without any login or IP.
+  function getClientId() {
+    let id = store.get(CLIENT_KEY);
+    if (!id) {
+      id = crypto?.randomUUID ? crypto.randomUUID()
+                              : 'c' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      store.set(CLIENT_KEY, id);
+    }
+    return id;
+  }
+
+  function getSlots() {
+    let arr = [];
+    try { const p = JSON.parse(store.get(SLOTS_KEY) || '[]'); if (Array.isArray(p)) arr = p; } catch { /* corrupt */ }
+    return Array.from({ length: SLOT_COUNT }, (_, i) => arr[i] || null);   // {code, ts} | null
+  }
+  const setSlots = (slots) => store.set(SLOTS_KEY, JSON.stringify(slots));
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function slotName(ts) {
+    const d = new Date(ts);
+    return `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  // Best-effort, fire-and-forget. no-cors + text/plain skips the CORS preflight
+  // that an Apps Script web app can't answer; we neither see nor need a reply.
+  function sendToSheet(code, ts) {
+    // Only from the real (https) site — never from file:// (local dev + the
+    // headless test harness both run there and must not spam the sheet).
+    if (!SHEET_URL || location.protocol === 'file:') return;
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const body = JSON.stringify({
+      cid: getClientId(),
+      code,
+      ids: picked.map(m => m.id).join(','),
+      perks: picked.map(m => m.name).join(', '),   // English names: stable aggregation key
+      sum: picked.reduce((s, m) => s + m.value, 0),
+      lang, ver: APP_VERSION, ts,
+    });
+    try {
+      fetch(SHEET_URL, { method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }).catch(() => {});
+    } catch { /* offline / blocked — stats are best-effort; the slot still saved */ }
+  }
+
   const $presetModal = document.getElementById('presetModal');
   const $presetList = document.getElementById('presetList');
 
@@ -1631,30 +1728,65 @@
     document.getElementById('presetBtn').focus();
   }
 
-  function applyPreset(preset) {
-    const name = preset.name[lang] ?? preset.name.ko;
+  // Snapshot the current selection into slot n (0-based) and report it to the
+  // sheet. Toasts and bails if nothing is selected.
+  function saveToSlot(n) {
+    if (!selected.size) { toast(t('toastPickFirst')); return false; }
+    const ts = Date.now();
+    const code = encode();
+    const slots = getSlots();
+    slots[n] = { code, ts };
+    setSlots(slots);
+    sendToSheet(code, ts);
+    toast(t('toastSlotSaved', { name: slotName(ts) }));
+    if (!$presetModal.hidden) renderPresetList();
+    return true;
+  }
+
+  function loadSlot(n) {
+    const slot = getSlots()[n];
+    if (!slot) return;
+    const s = decode(slot.code);
+    if (!s) return;
     selected.clear();
-    dropConflicts(new Set(preset.ids)).forEach(id => selected.add(id));
+    dropConflicts(s).forEach(id => selected.add(id));   // same guard as load()
     save();
     render();
     closePresetPanel();
-    toast(t('toastPresetOk', { name }));
+    toast(t('toastSlotLoaded', { name: slotName(slot.ts) }));
+  }
+
+  function clearSlot(n) {
+    const slots = getSlots();
+    slots[n] = null;
+    setSlots(slots);
+    renderPresetList();
+    toast(t('toastSlotCleared'));
   }
 
   function renderPresetList() {
     $presetList.replaceChildren();
-    if (!PRESETS.length) {
-      $presetList.append(el('div', 'picks-empty', t('presetEmpty')));
-      return;
-    }
-    for (const preset of PRESETS) {
+    getSlots().forEach((slot, i) => {
       const row = el('div', 'preset-row');
-      row.append(el('span', 'preset-name', preset.name[lang] ?? preset.name.ko));
-      const btn = el('button', 'tool preset-apply', t('presetApply'));
-      btn.addEventListener('click', () => applyPreset(preset));
-      row.append(btn);
+      const name = el('span', 'preset-name' + (slot ? '' : ' empty'));
+      name.append(el('span', 'slot-tag', t('slotLabel', { n: i + 1 })));
+      name.append(document.createTextNode(slot ? slotName(slot.ts) : t('slotEmpty')));
+      row.append(name, el('span', 'spacer'));
+      if (slot) {
+        const load = el('button', 'tool', t('slotLoad'));
+        load.addEventListener('click', () => loadSlot(i));
+        const over = el('button', 'tool', t('slotOverwrite'));
+        over.addEventListener('click', () => saveToSlot(i));
+        const clr = el('button', 'tool slot-clear', t('slotClear'));
+        clr.addEventListener('click', () => clearSlot(i));
+        row.append(load, over, clr);
+      } else {
+        const here = el('button', 'tool', t('slotSaveHere'));
+        here.addEventListener('click', () => saveToSlot(i));
+        row.append(here);
+      }
       $presetList.append(row);
-    }
+    });
   }
 
   document.getElementById('presetBtn').addEventListener('click', () => {
@@ -1664,6 +1796,47 @@
   });
   document.getElementById('presetClose').addEventListener('click', closePresetPanel);
   $presetModal.addEventListener('click', (e) => { if (e.target === $presetModal) closePresetPanel(); });
+
+  // Footer "현재 조합 저장": save into the first empty slot, else ask the user
+  // to overwrite one from the rows above.
+  document.getElementById('presetSaveBtn').addEventListener('click', () => {
+    if (!selected.size) return toast(t('toastPickFirst'));
+    const empty = getSlots().findIndex(s => !s);
+    if (empty === -1) return toast(t('toastNoEmptySlot'));
+    saveToSlot(empty);
+  });
+
+  // ----------------------------------------------------- save-image prompt
+  const $saveAsk = document.getElementById('saveAsk');
+  const $saveAskP1 = document.getElementById('saveAskP1');
+  const $saveAskP2 = document.getElementById('saveAskP2');
+
+  function openSaveAsk() {
+    $saveAskP1.hidden = false;
+    $saveAskP2.hidden = true;
+    $saveAsk.hidden = false;
+    document.getElementById('askImgOnly').focus();
+  }
+  function closeSaveAsk() {
+    $saveAsk.hidden = true;
+    document.getElementById('shotBtn').focus();
+  }
+  document.getElementById('saveAskClose').addEventListener('click', closeSaveAsk);
+  $saveAsk.addEventListener('click', (e) => { if (e.target === $saveAsk) closeSaveAsk(); });
+  // "이미지만": skip saving, just render. "저장하고 이미지": pick a slot, save, render.
+  document.getElementById('askImgOnly').addEventListener('click', () => { closeSaveAsk(); doRenderImage(); });
+  document.getElementById('askSaveImg').addEventListener('click', () => {
+    const pick = document.getElementById('slotPick');
+    pick.replaceChildren();
+    getSlots().forEach((slot, i) => {
+      const label = slot ? slotName(slot.ts) : t('slotEmpty');
+      const btn = el('button', 'tool', `${t('slotLabel', { n: i + 1 })} · ${label}`);
+      btn.addEventListener('click', () => { saveToSlot(i); closeSaveAsk(); doRenderImage(); });
+      pick.append(btn);
+    });
+    $saveAskP1.hidden = true;
+    $saveAskP2.hidden = false;
+  });
 
   document.getElementById('shareBtn').addEventListener('click', async () => {
     const url = shareUrl();

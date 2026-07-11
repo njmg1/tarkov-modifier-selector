@@ -17,7 +17,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.10';
+const APP_VERSION = '0.11';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -195,20 +195,6 @@ const MODIFIERS = [
 //                                         they are designed to coexist
 //   KAPPA PROTOCOL                     vs BROKEN SECURE CONTAINER — you can
 //                                         receive Kappa and have it restricted
-// Saved builds shown in the (still read-only) Presets panel.
-//
-// TODO: this is a placeholder — there is no UI yet to save the CURRENT
-// selection as a new preset. For now PRESETS is a hardcoded demo list;
-// wiring up "save this build" is future work.
-const PRESETS = [
-  {
-    id: 'demo-kappa-zero',
-    name: { ko: '예시 조합 — 카파 프로토콜', ja: 'サンプル — カッパプロトコル', en: 'Example — Kappa Protocol' },
-    // rolled by the random-build button; kept because it lands on exactly
-    // 0 (the tightest possible pass) while still taking KAPPA PROTOCOL
-    ids: [11, 13, 15, 23, 25, 26, 27, 28, 31, 32, 33, 35],
-  },
-];
 
 const EXCLUSIONS = [
   { a: 18, b: 24, kind: 'opposite', axis: { ko: '출혈 확률', ja: '出血確率', en: 'Bleeding chance' } },
@@ -300,10 +286,26 @@ const STRINGS = {
   toastRandomOk:  { ko: '랜덤 조합을 뽑았습니다', ja: 'ランダムな組み合わせを選びました', en: 'Rolled a random build' },
 
   presetBtn:      { ko: '프리셋', ja: 'プリセット', en: 'Presets' },
-  presetPanelTitle: { ko: '프리셋', ja: 'プリセット', en: 'Presets' },
-  presetApply:    { ko: '적용', ja: '適用', en: 'Apply' },
-  presetSaveTodo: { ko: '+ 새 프리셋 저장', ja: '+ 新規プリセット保存', en: '+ Save new preset' },
-  presetSaveNote: { ko: '곧 지원 예정', ja: '近日対応予定', en: 'Coming soon' },
-  presetEmpty:    { ko: '아직 프리셋이 없습니다', ja: 'まだプリセットがありません', en: 'No presets yet' },
-  toastPresetOk:  { ko: '{name} 적용됨', ja: '{name} を適用しました', en: 'Applied {name}' },
+  presetPanelTitle: { ko: '내 프리셋', ja: 'マイプリセット', en: 'My presets' },
+  presetPanelHint:{ ko: '이 기기에 최대 3개까지 저장됩니다. 저장하면 통계에 집계됩니다.',
+                    ja: 'この端末に最大3件まで保存されます。保存すると統計に集計されます。',
+                    en: 'Up to 3 are saved on this device. Saving also adds to the stats.' },
+  slotLabel:      { ko: '슬롯 {n}', ja: 'スロット {n}', en: 'Slot {n}' },
+  slotEmpty:      { ko: '비어있음', ja: '空き', en: 'Empty' },
+  slotLoad:       { ko: '불러오기', ja: '読み込み', en: 'Load' },
+  slotOverwrite:  { ko: '덮어쓰기', ja: '上書き', en: 'Overwrite' },
+  slotSaveHere:   { ko: '여기 저장', ja: 'ここに保存', en: 'Save here' },
+  slotClear:      { ko: '비우기', ja: 'クリア', en: 'Clear' },
+  slotSaveCurrent:{ ko: '현재 조합 저장', ja: '現在の組み合わせを保存', en: 'Save current build' },
+  toastSlotSaved: { ko: '저장됨 · {name}', ja: '保存しました · {name}', en: 'Saved · {name}' },
+  toastSlotLoaded:{ ko: '{name} 불러옴', ja: '{name} を読み込みました', en: 'Loaded {name}' },
+  toastSlotCleared:{ ko: '슬롯을 비웠습니다', ja: 'スロットを空にしました', en: 'Slot cleared' },
+  toastNoEmptySlot:{ ko: '빈 슬롯이 없습니다 — 덮어쓸 슬롯을 고르세요', ja: '空きスロットがありません — 上書きするスロットを選択', en: 'No empty slot — pick one to overwrite' },
+  saveAskTitle:   { ko: '현재 조합을 저장할까요?', ja: 'この組み合わせを保存しますか？', en: 'Save this build?' },
+  saveAskMsg:     { ko: '이미지로 저장하기 전에, 이 조합을 이 기기의 슬롯에 저장할 수 있습니다.',
+                    ja: '画像として保存する前に、この組み合わせを端末のスロットに保存できます。',
+                    en: 'Before saving the image, you can store this build in a slot on this device.' },
+  askImgOnly:     { ko: '이미지만', ja: '画像のみ', en: 'Image only' },
+  askSaveImg:     { ko: '저장하고 이미지', ja: '保存して画像', en: 'Save & image' },
+  saveAskPick:    { ko: '저장할 슬롯을 고르세요', ja: '保存するスロットを選択してください', en: 'Choose a slot to save into' },
 };

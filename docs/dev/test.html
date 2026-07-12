@@ -635,6 +635,27 @@ window.addEventListener('load', async () => {
   try { localStorage.removeItem('kord-breach-slots'); } catch {}
   $('#resetBtn').click();
 
+  // ---- named slots -------------------------------------------------------
+  // A custom name typed in the field becomes the slot label; the save time is
+  // still shown alongside it, and the field clears after each save.
+  click('NO FLEA MARKET');
+  $('#presetBtn').click();
+  $('#slotNameInput').value = '내 빌드';
+  $('#presetSaveBtn').click();                    // footer save -> first empty (slot 1)
+  chk($('#slotNameInput').value === '', 'name field clears after saving');
+  let named = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(named[0]?.name === '내 빌드', 'custom name persisted on the slot');
+  const namedRow = document.querySelectorAll('.preset-row')[0];
+  chk(/내 빌드/.test(namedRow.querySelector('.preset-name').textContent), 'slot row shows the custom name');
+  chk(namedRow.querySelector('.slot-time') !== null, 'named slot also shows the save time');
+  // overwriting with an empty name keeps the existing name
+  namedRow.querySelectorAll('button')[1].click();  // 덮어쓰기, field is empty
+  named = JSON.parse(localStorage.getItem('kord-breach-slots'));
+  chk(named[0]?.name === '내 빌드', 'overwrite with a blank name keeps the old name');
+  $('#presetClose').click();
+  try { localStorage.removeItem('kord-breach-slots'); } catch {}
+  $('#resetBtn').click();
+
   // ---- layout sanity ---------------------------------------------------
   // Nothing may push the page sideways, at any width we support.
   chk(document.documentElement.scrollWidth <= innerWidth + 1,

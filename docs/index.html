@@ -609,10 +609,19 @@
   .preset-name { font-size: 13px; color: var(--text); min-width: 0; }
   .preset-name.empty { color: var(--text-dim); font-style: italic; }
   .preset-name .slot-tag { color: var(--text-dim); font-style: normal; margin-right: 6px; }
+  .preset-name .slot-time { color: var(--text-dim); font-style: normal; font-size: 11px; }
   .preset-row .spacer { margin-left: auto; }
   .preset-row .tool { padding: 6px 11px; flex: 0 0 auto; font-size: 12px; }
   .preset-row .slot-clear { color: var(--text-dim); }
-  #presetSaveBtn { width: 100%; text-align: center; }
+  .preset-foot { display: flex; gap: 8px; align-items: stretch; }
+  .slot-name-input {
+    flex: 1 1 auto; min-width: 0; padding: 8px 11px; font: inherit; font-size: 13px;
+    color: var(--text); background: var(--panel-2); border: 1px solid var(--line, #333);
+    border-radius: 3px;
+  }
+  .slot-name-input::placeholder { color: var(--text-dim); }
+  .slot-name-input:focus { outline: none; border-color: var(--text-dim); }
+  #presetSaveBtn { flex: 0 0 auto; text-align: center; }
   /* --------------------------------------------------------- save prompt */
   .save-ask-body { padding: 14px 16px 18px; }
   .save-ask-msg { font-size: 13px; color: var(--text-dim); line-height: 1.55; margin-bottom: 14px; }
@@ -773,7 +782,9 @@
     </div>
     <p class="preset-hint" id="presetHint">이 기기에 최대 3개까지 저장됩니다.</p>
     <div class="preset-list" id="presetList"></div>
-    <div class="modal-foot">
+    <div class="modal-foot preset-foot">
+      <input type="text" id="slotNameInput" class="slot-name-input" maxlength="40"
+             placeholder="이름 (비워두면 시각)" autocomplete="off">
       <button class="tool" id="presetSaveBtn">현재 조합 저장</button>
     </div>
   </div>
@@ -1479,6 +1490,7 @@
     document.getElementById('verFoot').textContent = t('footerVersion', { ver: APP_VERSION });
     document.getElementById('presetClose').setAttribute('aria-label', t('modalClose'));
     document.getElementById('saveAskClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('slotNameInput').placeholder = t('slotNamePlaceholder');
     // by id, not a pre-declared const: applyStaticText() runs (via the init
     // sync below) before the preset section's consts exist further down —
     // renderPresetList is a hoisted function declaration, so calling it
@@ -1729,18 +1741,26 @@
   }
 
   // Snapshot the current selection into slot n (0-based) and report it to the
-  // sheet. Toasts and bails if nothing is selected.
-  function saveToSlot(n) {
+  // sheet. An optional custom name (local display only, never sent) falls back
+  // to the slot's existing name, then to the save time. Bails if nothing's on.
+  function saveToSlot(n, nameOverride) {
     if (!selected.size) { toast(t('toastPickFirst')); return false; }
     const ts = Date.now();
     const code = encode();
     const slots = getSlots();
-    slots[n] = { code, ts };
+    const name = (nameOverride ?? '').trim() || slots[n]?.name || null;
+    slots[n] = { code, ts, name };
     setSlots(slots);
-    sendToSheet(code, ts);
-    toast(t('toastSlotSaved', { name: slotName(ts) }));
+    sendToSheet(code, ts);   // name is a personal label, intentionally not sent
+    toast(t('toastSlotSaved', { name: name || slotName(ts) }));
     if (!$presetModal.hidden) renderPresetList();
     return true;
+  }
+
+  // Save from the panel: apply whatever's typed in the name field, then clear it.
+  const $slotNameInput = document.getElementById('slotNameInput');
+  function saveFromPanel(n) {
+    if (saveToSlot(n, $slotNameInput.value)) $slotNameInput.value = '';
   }
 
   function loadSlot(n) {
@@ -1770,19 +1790,24 @@
       const row = el('div', 'preset-row');
       const name = el('span', 'preset-name' + (slot ? '' : ' empty'));
       name.append(el('span', 'slot-tag', t('slotLabel', { n: i + 1 })));
-      name.append(document.createTextNode(slot ? slotName(slot.ts) : t('slotEmpty')));
+      if (slot) {
+        name.append(document.createTextNode(slot.name || slotName(slot.ts)));
+        if (slot.name) name.append(el('span', 'slot-time', ' · ' + slotName(slot.ts)));
+      } else {
+        name.append(document.createTextNode(t('slotEmpty')));
+      }
       row.append(name, el('span', 'spacer'));
       if (slot) {
         const load = el('button', 'tool', t('slotLoad'));
         load.addEventListener('click', () => loadSlot(i));
         const over = el('button', 'tool', t('slotOverwrite'));
-        over.addEventListener('click', () => saveToSlot(i));
+        over.addEventListener('click', () => saveFromPanel(i));
         const clr = el('button', 'tool slot-clear', t('slotClear'));
         clr.addEventListener('click', () => clearSlot(i));
         row.append(load, over, clr);
       } else {
         const here = el('button', 'tool', t('slotSaveHere'));
-        here.addEventListener('click', () => saveToSlot(i));
+        here.addEventListener('click', () => saveFromPanel(i));
         row.append(here);
       }
       $presetList.append(row);
@@ -1803,7 +1828,11 @@
     if (!selected.size) return toast(t('toastPickFirst'));
     const empty = getSlots().findIndex(s => !s);
     if (empty === -1) return toast(t('toastNoEmptySlot'));
-    saveToSlot(empty);
+    saveFromPanel(empty);
+  });
+  // Enter in the name field = the footer save
+  $slotNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('presetSaveBtn').click(); }
   });
 
   // ----------------------------------------------------- save-image prompt

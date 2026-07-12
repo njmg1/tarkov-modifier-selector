@@ -297,6 +297,7 @@ const STRINGS = {
   slotSaveHere:   { ko: '여기 저장', ja: 'ここに保存', en: 'Save here' },
   slotClear:      { ko: '비우기', ja: 'クリア', en: 'Clear' },
   slotSaveCurrent:{ ko: '현재 조합 저장', ja: '現在の組み合わせを保存', en: 'Save current build' },
+  slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   toastSlotSaved: { ko: '저장됨 · {name}', ja: '保存しました · {name}', en: 'Saved · {name}' },
   toastSlotLoaded:{ ko: '{name} 불러옴', ja: '{name} を読み込みました', en: 'Loaded {name}' },
   toastSlotCleared:{ ko: '슬롯을 비웠습니다', ja: 'スロットを空にしました', en: 'Slot cleared' },

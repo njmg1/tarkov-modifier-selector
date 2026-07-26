@@ -82,8 +82,8 @@ const MODIFIERS = [
     ja: ['週に一度、スカブがあなたにみかじめ料を納める'] },
   { id: 14, cat: 'positive', name: 'THE TARKOV SHOOTER', koName: '타르코프 슈터', jaName: 'タルコフシューター', value: -3,
     en: ['Bolt-action Rifles skill leveling speed is increased by 100%', 'Bolt-action Rifles skill starts at level 10'],
-    ko: ['볼트 액션 라이플 스킬 레벨업 속도 100%, 레벨 10으로 시작함.'],
-    ja: ['ボルトアクションライフルスキルのレベルアップ速度100%増加、レベル10からスタート'] },
+    ko: ['볼트 액션 라이플 스킬 레벨업 속도 100% 증가 (2배), 레벨 10으로 시작함.'],
+    ja: ['ボルトアクションライフルスキルのレベルアップ速度100%増加（2倍）、レベル10からスタート'] },
   { id: 15, cat: 'positive', name: 'DIET', koName: '다이어트', jaName: 'ダイエット', value: -1,
     en: ['All provisions consume 50% less resource'],
     ko: ['모든 식량이 50% 덜 소모됨 (용량 2배 증가)'],
@@ -172,8 +172,8 @@ const MODIFIERS = [
     ja: ['他プレイヤーとのフリーマーケット取引が禁止される'] },
   { id: 36, cat: 'negative', name: 'THIRD LEG', koName: '세 번째 다리 "나 오늘 장사 안해"', jaName: '三本目の足「今日は商売しない」', value: 1,
     en: ['Movement speed is decreased by 1%', 'Buying items at Therapist is 5% cheaper'],
-    ko: ['이동속도 1% 감소, 테라피스트와의 거래 가격 5% 인하(?)'],
-    ja: ['移動速度が1%減少、セラピストとの取引価格が5%引き下げ(?)'] },
+    ko: ['이동속도 1% 감소, 테라피스트 상점의 구매 가격 5% 인하'],
+    ja: ['移動速度が1%減少、セラピストからの購入価格が5%引き下げ'] },
 ];
 
 // Each `id` matches the `NN_` prefix of its source block in

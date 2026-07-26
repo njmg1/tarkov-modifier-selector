@@ -68,7 +68,7 @@ const MODIFIERS = [
     en: ['Consuming a juice drink grants the Painkiller effect for 60 seconds'],
     ko: ['쥬스 마시면 60초간 진통제 효과'],
     ja: ['ジュースを飲むと60秒間ペインキラー効果'] },
-  { id: 11, cat: 'positive', name: "SAILOR'S NOSTALGIA", koName: '뱃사람의 향수', jaName: '船乗りの郷愁', value: -2,
+  { id: 11, cat: 'positive', name: "SAILOR'S NOSTALGIA", koName: '뱃사람의 향수병', jaName: '船乗りの郷愁', value: -2,
     en: ['Consuming canned fish grants the Health Regeneration (+2) effect for 10 seconds'],
     ko: ['생선 통조림을 먹으면 10초간, 체력 리젠 +2 효과를 얻는다.'],
     ja: ['魚の缶詰を食べると10秒間、体力リジェネ+2効果を得る'] },

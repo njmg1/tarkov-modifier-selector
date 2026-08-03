@@ -378,7 +378,6 @@
     font: 600 12px/1.4 var(--sans); letter-spacing: .04em;
     color: var(--warn);
   }
-  .card.blocked.guess .block-msg { color: var(--text-dim); font-weight: 500; }
   .block-msg small {
     display: block; margin-top: 3px;
     font: 400 10.5px/1.3 var(--sans); color: var(--text-faint); letter-spacing: 0;
@@ -869,19 +868,22 @@
   const selected = new Set();
 
   // ---------------------------------------------------------------- state io
-  // Selection is a bitmask over ids 7..36, base36-encoded. Fits in a Number
-  // (30 bits), so no BigInt needed.
+  // Selection is a bitmask over ids 7..39, base36-encoded. The 1.1.0 additions
+  // (ids 37-39) pushed this past 31 bits, where JS bitwise operators wrap —
+  // so the mask is built with arithmetic instead (exact in a double up to
+  // 2^53). Old saved/shared codes keep their meaning: bit positions for ids
+  // 7..36 are unchanged.
   const BIT0 = 7;
   const encode = () => {
     let n = 0;
-    for (const id of selected) n |= 1 << (id - BIT0);
+    for (const id of selected) n += 2 ** (id - BIT0);
     return n.toString(36);
   };
   const decode = (s) => {
     const n = parseInt(s, 36);
     if (!Number.isFinite(n) || n < 0) return null;
     const out = new Set();
-    for (const m of SELECTABLE) if (n & (1 << (m.id - BIT0))) out.add(m.id);
+    for (const m of SELECTABLE) if (Math.floor(n / 2 ** (m.id - BIT0)) % 2) out.add(m.id);
     return out;
   };
 
@@ -979,7 +981,7 @@
     return node;
   }
 
-  const BLOCK_KEY = { opposite: 'veilOpposite', guess: 'veilGuess' };
+  const BLOCK_KEY = { official: 'veilOfficial' };
 
   for (const c of CATS) {
     const grid = document.getElementById(`grid-${c}`);
@@ -1092,7 +1094,6 @@
 
       const blocker = on ? null : blockerOf(m);
       node.classList.toggle('blocked', !!blocker);
-      node.classList.toggle('guess', blocker?.kind === 'guess');
       node.setAttribute('aria-disabled', String(!!blocker));
       if (blocker) {
         const msg = node.querySelector('.block-msg');

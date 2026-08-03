@@ -27,31 +27,31 @@ window.addEventListener('load', async () => {
   // clean slate regardless of any persisted state
   $('#resetBtn').click();
 
-  chk(document.querySelectorAll('.card').length === 36, '36 cards rendered');
+  chk(document.querySelectorAll('.card').length === 39, '39 cards rendered');
   chk(document.querySelectorAll('.card.global').length === 6, '6 global cards');
-  chk(document.querySelectorAll('button.card').length === 30, '30 clickable cards');
-  chk(cardByName('KAPPA PROTOCOL').querySelector('.val').textContent === '-21', 'kappa shows -21');
-  chk(cardByName('NO FLEA MARKET').querySelector('.val').textContent === '+6', 'flea shows +6');
+  chk(document.querySelectorAll('button.card').length === 33, '33 clickable cards');
+  chk(cardByName('KAPPA PROTOCOL').querySelector('.val').textContent === '-12', 'kappa shows -12');
+  chk(cardByName('NO FLEA MARKET').querySelector('.val').textContent === '+10', 'flea shows +10');
   chk(!cardByName('NO INSURANCE').querySelector('.val'), 'global card shows no value');
 
   chk(bal() === '0' && verdict() === 'PASS', 'empty build: 0 / PASS');
 
-  click('NO FLEA MARKET');                       // +6
-  chk(bal() === '6', 'after +6 handicap, balance 6 (got ' + bal() + ')');
-  chk(detail() === '디버프 +6 · 퍽 −0', 'detail line: ' + detail());
+  click('NO FLEA MARKET');                       // +10
+  chk(bal() === '10', 'after +10 handicap, balance 10 (got ' + bal() + ')');
+  chk(detail() === '디버프 +10 · 퍽 −0', 'detail line: ' + detail());
   chk(cardByName('NO FLEA MARKET').getAttribute('aria-pressed') === 'true', 'aria-pressed set');
-  chk(cardByName('KAPPA PROTOCOL').classList.contains('unaffordable'), 'kappa flagged unaffordable at balance 6');
-  chk(!cardByName('SPRINTER').classList.contains('unaffordable'), 'sprinter(-2) affordable at balance 6');
+  chk(cardByName('KAPPA PROTOCOL').classList.contains('unaffordable'), 'kappa(-12) flagged unaffordable at balance 10');
+  chk(!cardByName('SPRINTER').classList.contains('unaffordable'), 'sprinter(-3) affordable at balance 10');
 
-  click('SPRINTER');                             // -2
-  chk(bal() === '4', 'after -2 perk, balance 4 (got ' + bal() + ')');
-  chk(verdict() === 'PASS', 'still PASS at 4');
+  click('SPRINTER');                             // -3
+  chk(bal() === '7', 'after -3 perk, balance 7 (got ' + bal() + ')');
+  chk(verdict() === 'PASS', 'still PASS at 7');
 
   click('SPRINTER');                             // toggle off
-  chk(bal() === '6', 'toggle off restores 6 (got ' + bal() + ')');
+  chk(bal() === '10', 'toggle off restores 10 (got ' + bal() + ')');
 
-  click('KAPPA PROTOCOL');                       // -21 -> overspend
-  chk(bal() === '-15', 'overspent balance -15 (got ' + bal() + ')');
+  click('KAPPA PROTOCOL');                       // -12 -> overspend
+  chk(bal() === '-2', 'overspent balance -2 (got ' + bal() + ')');
   chk(verdict() === 'OVER BUDGET', 'verdict OVER BUDGET');
   chk($('#bar').classList.contains('over'), 'bar in over state');
   chk($('#balance').classList.contains('bad'), 'balance styled bad');
@@ -112,7 +112,7 @@ window.addEventListener('load', async () => {
   // with {name}" only appears in the card's title tooltip.
   click('THROMBOPHILIA');
   const hemoCard = cardByName('HEMOPHILIA');
-  chk(hemoCard.querySelector('.block-msg').firstChild.textContent === 'Opposite effect picked',
+  chk(hemoCard.querySelector('.block-msg').firstChild.textContent === 'Cannot combine (official)',
       'veil message in english: ' + hemoCard.querySelector('.block-msg').firstChild.textContent);
   chk(/Bleeding chance/.test(hemoCard.querySelector('.block-msg small').textContent),
       'veil axis label in english');
@@ -126,19 +126,22 @@ window.addEventListener('load', async () => {
   try { stored = localStorage.getItem('kord-breach-lang'); } catch {}
   chk(stored === 'ko', 'localStorage updated back to ko');
 
-  // max-budget build: every handicap on, kappa on -> 13 left
+  // max-budget build. The raw debuff sum is +50, but PERSONALITY VACUUM and
+  // THIRD LEG are officially exclusive (both debuffs!), so the achievable
+  // maximum is +49 — THIRD LEG's click bounces off the veil here.
   $('#resetBtn').click();
   ['HEMOPHILIA','OSTEOPOROSIS','EXHAUSTION','WELL THAT HURT!','INCOMPETENT','POLYDIPSIA',
    'CHRONIC FATIGUE SYNDROME','PERSONALITY VACUUM','DR. JEKYLL','ALLERGIC',
-   'BROKEN SECURE CONTAINER','NO FLEA MARKET','THIRD LEG'].forEach(click);
-  chk(bal() === '34', 'all handicaps = 34 (got ' + bal() + ')');
+   'BROKEN SECURE CONTAINER','NO FLEA MARKET','THIRD LEG','UNLUCKY'].forEach(click);
+  chk(bal() === '49', 'max achievable handicaps = 49 (got ' + bal() + ')');
+  chk(cardByName('THIRD LEG').classList.contains('blocked'), 'THIRD LEG veiled by PERSONALITY VACUUM');
   click('KAPPA PROTOCOL');
-  chk(bal() === '13', 'all handicaps + kappa = 13 (got ' + bal() + ')');
+  chk(bal() === '37', 'max handicaps + kappa = 37 (got ' + bal() + ')');
   chk(verdict() === 'PASS', 'kappa build passes');
 
   // icons: every card must resolve a data-URI mask that actually paints
   const icons = [...document.querySelectorAll('.card .icon')];
-  chk(icons.length === 36, '36 card icons');
+  chk(icons.length === 39, '39 card icons');
   chk(icons.every(i => /^url\("data:image\/png;base64,/.test(i.style.getPropertyValue('--ic'))),
       'all icons wired to data URIs');
   chk(icons.every(i => getComputedStyle(i).maskImage.startsWith('url("data:image/png')),
@@ -150,12 +153,12 @@ window.addEventListener('load', async () => {
 
   // all three clipped source translations have been filled in
   chk(document.querySelectorAll('.ko .trunc').length === 0, 'no truncation markers left');
-  chk(/50% 줄어듦$/.test(cardByName('BUSHBORNE').querySelector('.ko').textContent), 'bushborne ko complete');
+  chk(/75% 줄어듦$/.test(cardByName('BUSHBORNE').querySelector('.ko').textContent), 'bushborne ko complete');
   chk(/\(크래프팅 제외\)$/.test(cardByName('INCOMPETENT').querySelector('.ko').textContent), 'incompetent ko complete');
   chk(/생기는 디버프\)$/.test(cardByName('DR. JEKYLL').querySelector('.ko').textContent), 'dr jekyll ko complete');
 
   // korean titles beside the english ones
-  chk(document.querySelectorAll('.ko-name').length === 36, '36 korean titles');
+  chk(document.querySelectorAll('.ko-name').length === 39, '39 korean titles');
   const koTitle = n => cardByName(n).querySelector('.ko-name').textContent;
   for (const [en, ko] of [
     ['KAPPA PROTOCOL', '카파 프로토콜'], ['NO FLEA MARKET', '플리마켓 금지'],
@@ -168,16 +171,16 @@ window.addEventListener('load', async () => {
   const veil = n => cardByName(n).querySelector('.block-msg').textContent;
   const blocked = n => cardByName(n).classList.contains('blocked');
 
-  chk(EXCLUSIONS.length === 7, '7 exclusion pairs');
-  chk(EXCLUSIONS.every(e => e.a >= 7 && e.b <= 36), 'exclusions only cover selectable ids');
+  chk(EXCLUSIONS.length === 18, '18 official exclusion pairs');
+  chk(EXCLUSIONS.every(e => e.a >= 7 && e.a <= 39 && e.b >= 7 && e.b <= 39), 'exclusions only cover selectable ids');
   chk(document.querySelectorAll('.card.blocked').length === 0, 'nothing blocked on a clean slate');
 
   // an "opposite" pair: picking one veils the other, both directions
   click('THROMBOPHILIA');                       // -2, bleeding down
   chk(blocked('HEMOPHILIA'), 'HEMOPHILIA blocked by THROMBOPHILIA');
-  chk(veil('HEMOPHILIA').startsWith('상반된 효과 선택됨'), 'opposite veil text: ' + veil('HEMOPHILIA'));
+  chk(veil('HEMOPHILIA').startsWith('동시 선택 불가 (공식)'), 'official veil text: ' + veil('HEMOPHILIA'));
   chk(/출혈 확률/.test(veil('HEMOPHILIA')), 'veil names the axis');
-  chk(!cardByName('HEMOPHILIA').classList.contains('guess'), 'opposite pair is not a guess');
+  
   chk(cardByName('HEMOPHILIA').getAttribute('aria-disabled') === 'true', 'blocked card aria-disabled');
   {
     // the message must be readable: card contents faded, veil covering the card
@@ -209,25 +212,28 @@ window.addEventListener('load', async () => {
   // one modifier can block two others (YOUTH)
   click('YOUTH');
   chk(blocked('CHRONIC FATIGUE SYNDROME') && blocked('EXHAUSTION'), 'YOUTH blocks both its opposites');
-  chk(!blocked('POLYPHAGIA'), 'YOUTH does not block a same-direction perk');
+  chk(blocked('POLYPHAGIA'), 'YOUTH blocks POLYPHAGIA too (official 1.1.0 rule)');
   click('YOUTH');
 
-  // the 'guess' pair is worded differently
+  // AVERAGE conflicts with the whole skill-growth family (official rules)
   click('AVERAGE');
   chk(blocked('INCOMPETENT'), 'INCOMPETENT blocked by AVERAGE');
-  chk(cardByName('INCOMPETENT').classList.contains('guess'), 'guess pair flagged');
-  chk(veil('INCOMPETENT').startsWith('추측하기론 동시 선택 안될듯'), 'guess veil text: ' + veil('INCOMPETENT'));
+  chk(blocked('HERCULES') && blocked('THE TARKOV SHOOTER') && blocked('PRODIGY'),
+      'AVERAGE also blocks HERCULES / TARKOV SHOOTER / PRODIGY');
+  chk(veil('INCOMPETENT').startsWith('동시 선택 불가 (공식)'), 'official veil text: ' + veil('INCOMPETENT'));
   click('AVERAGE');
 
-  // pairs the analysis deliberately left out must stay selectable together
-  click('MARATHON RUNNER'); click('EXHAUSTION');
-  chk(cardByName('MARATHON RUNNER').classList.contains('on') &&
-      cardByName('EXHAUSTION').classList.contains('on'),
-      'MARATHON RUNNER + EXHAUSTION coexist (different axes)');
+  // 1.1.0 turned two formerly-coexisting pairs into official conflicts
+  click('MARATHON RUNNER');
+  chk(blocked('EXHAUSTION') && blocked('SPRINTER'),
+      'MARATHON RUNNER blocks EXHAUSTION and SPRINTER (1.1.0)');
   $('#resetBtn').click();
-  click('SPRINTER'); click('THIRD LEG');
-  chk(cardByName('SPRINTER').classList.contains('on') && cardByName('THIRD LEG').classList.contains('on'),
-      'SPRINTER + THIRD LEG coexist');
+  click('SPRINTER');
+  chk(blocked('THIRD LEG'), 'SPRINTER blocks THIRD LEG (1.1.0)');
+  $('#resetBtn').click();
+  // new modifiers: LUCKY <-> UNLUCKY are mutually exclusive
+  click('LUCKY');
+  chk(blocked('UNLUCKY'), 'LUCKY blocks UNLUCKY');
   $('#resetBtn').click();
   click('THE TARKOV SHOOTER'); click('INCOMPETENT');
   chk(cardByName('THE TARKOV SHOOTER').classList.contains('on') &&
@@ -277,18 +283,18 @@ window.addEventListener('load', async () => {
   $('#resetBtn').click();
   chk($('#picks .picks-empty') !== null, 'empty sidebar shows placeholder');
   chk(picks().length === 0, 'no pick rows when empty');
-  chk($('#pickCount').textContent === '0 / 30', 'count starts 0/30');
+  chk($('#pickCount').textContent === '0 / 33', 'count starts 0/33');
 
-  click('NO FLEA MARKET');            // +6
-  click('SPRINTER');                  // -2
+  click('NO FLEA MARKET');            // +10
+  click('SPRINTER');                  // -3
   chk(picks().length === 2, 'two rows listed');
   chk($('#picks .picks-empty') === null, 'placeholder gone');
-  chk($('#pickCount').textContent === '2 / 30', 'count 2/30');
+  chk($('#pickCount').textContent === '2 / 33', 'count 2/33');
   // handicaps group first, perks second
   chk(pickNames().join('|') === '플리마켓 금지|단거리 주자', 'grouped handicap-then-perk: ' + pickNames());
-  chk($('#fGain').textContent === '+6', 'sidebar gain +6');
-  chk($('#fCost').textContent === '−2', 'sidebar cost −2');
-  chk($('#fLeft').textContent === '4', 'sidebar balance 4');
+  chk($('#fGain').textContent === '+10', 'sidebar gain +10');
+  chk($('#fCost').textContent === '−3', 'sidebar cost −3');
+  chk($('#fLeft').textContent === '7', 'sidebar balance 7');
   chk(!$('#fLeftRow').classList.contains('bad'), 'sidebar balance not flagged bad');
   chk(picks().every(p => /^url\("data:image\/png/.test(
         p.querySelector('.icon').style.getPropertyValue('--ic'))), 'pick rows have icons');
@@ -319,11 +325,11 @@ window.addEventListener('load', async () => {
   picks().find(p => p.querySelector('.nm').textContent === '단거리 주자').click();
   chk(picks().length === 1, 'row click removed the perk');
   chk(cardByName('SPRINTER').classList.contains('on') === false, 'card deselected too');
-  chk(bal() === '6', 'balance back to 6 after row removal');
+  chk(bal() === '10', 'balance back to 10 after row removal');
 
-  click('KAPPA PROTOCOL');            // -21 -> overspend
+  click('KAPPA PROTOCOL');            // -12 -> overspend
   chk($('#fLeftRow').classList.contains('bad'), 'sidebar balance flagged bad when over');
-  chk($('#fLeft').textContent === '-15', 'sidebar shows -15');
+  chk($('#fLeft').textContent === '-2', 'sidebar shows -2');
 
   $('#resetBtn').click();
   chk(bal() === '0', 'reset back to 0');
@@ -345,7 +351,7 @@ window.addEventListener('load', async () => {
   chk(asideNames.length === 2 && asideNames.join('|') === sheetNames.join('|'),
       'sheet mirrors aside: ' + sheetNames);
   chk($('#sheetCount').textContent === '2개 선택', 'sheet count: ' + $('#sheetCount').textContent);
-  chk($('#sheetBal').textContent === '4', 'sheet balance 4 (got ' + $('#sheetBal').textContent + ')');
+  chk($('#sheetBal').textContent === '7', 'sheet balance 7 (got ' + $('#sheetBal').textContent + ')');
   chk($('#sheetVerdict').textContent === 'PASS', 'sheet verdict PASS');
 
   // a row in the sheet deselects, same as the aside

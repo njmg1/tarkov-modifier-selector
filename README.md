@@ -1,4 +1,4 @@
-# KORD BREACH 모디파이어 시뮬레이터 <sub>v0.19</sub>
+# KORD BREACH 모디파이어 시뮬레이터 <sub>v0.20</sub>
 
 Escape from Tarkov · KORD BREACH 시즌 1의 모디파이어(특성 퍽) 39종을 한글로 번역하고,
 조합해서 통과 여부를 확인하는 페이지입니다. (1.1.0.0.46608 시즌 런칭 밸런스 반영)

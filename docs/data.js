@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.19';
+const APP_VERSION = '0.20';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -242,7 +242,7 @@ const EXCLUSIONS = [
 //   cond.perksMax — at most this many positive modifiers selected
 const ACHIEVEMENTS = [
   { id: 'no-help',
-    name: { ko: '도움 필요 없어', ja: '助けは要らない', en: 'No Help Needed' },
+    name: { ko: '도움 필요 없어', ja: '助けは要らない', en: "Don't Need Any Help" },
     cond: { perksMax: 0 },
     note: { ko: '+ 레벨 30 달성', ja: '+ レベル30達成', en: '+ reach level 30' } },
   { id: 'had-plan',
@@ -254,7 +254,7 @@ const ACHIEVEMENTS = [
     cond: { all: [24, 25, 29, 33, 36] },
     note: { ko: '+ 레벨 30 달성', ja: '+ レベル30達成', en: '+ reach level 30' } },
   { id: 'one-good-two-better',
-    name: { ko: '하나도 좋지만, 둘은 더 좋다', ja: '一つも良いが二つはもっと良い', en: 'One Is Good, Two Is Better' },
+    name: { ko: '하나도 좋지만, 둘은 더 좋다', ja: '一つも良いが二つはもっと良い', en: 'One Is Good, Two is Better' },
     cond: { all: [23] },
     note: { ko: '카파는 생성 즉시 지급', ja: 'カッパは作成時に即支給', en: 'Kappa granted on creation' } },
   { id: 'new-era',
@@ -273,7 +273,7 @@ const ACHIEVEMENTS = [
     cond: { pool: [7, 12, 16, 18, 19, 20, 21, 37], n: 5 },
     note: { ko: '+ 모든 생존 경로 임무 완료', ja: '+ 全サバイバル任務完了', en: '+ finish all survival-path tasks' } },
   { id: 'born-entrepreneur',
-    name: { ko: '천생 기업가', ja: '生まれながらの起業家', en: 'Born Entrepreneur' },
+    name: { ko: '천생 기업가', ja: '生まれながらの起業家', en: 'Entrepreneur Born in Heaven' },
     cond: { all: [13] },
     note: { ko: '+ 5억₽·100만€·100만$ 동시 보유', ja: '+ 5億₽・100万€・100万$同時所持', en: '+ hold 500M₽ / 1M€ / 1M$ at once' } },
 ];
@@ -387,7 +387,7 @@ const STRINGS = {
   slotSaveCurrent:{ ko: '현재 조합 저장', ja: '現在の組み合わせを保存', en: 'Save current build' },
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
-  achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Imposter · Profit Over Principles' },
   tagFixed:       { ko: '고정', ja: '固定', en: 'FIXED' },
   tagFree:        { ko: '자유', ja: '自由', en: 'FREE' },
   achvBuild1:     { ko: '조합①', ja: '構成①', en: 'Build 1' },

@@ -414,7 +414,7 @@ window.addEventListener('load', async () => {
       'build1 satisfies its 4 achievements');
   chk(!met('우리 집에는 하드코어가 있다'), 'build1 correctly voids hardcore-home');
   $('#achvBuild2').click();
-  chk(bal() === '44', 'build2 button applies the bare run (+44): got ' + bal());
+  chk(bal() === '36', 'build2 button applies the bare run (+36): got ' + bal());
   chk(met('도움 필요 없어') && met('계획이 있었어') && met('유전자 복권') && met('우리 집에는 하드코어가 있다'),
       'build2 satisfies its 4 gated achievements');
   chk(document.querySelectorAll('#sheetAchv .achv-build').length === 2, 'sheet strip carries both build buttons');
@@ -431,6 +431,8 @@ window.addEventListener('load', async () => {
   $('#achvBuild2').click();
   chk(btag('HEMOPHILIA')?.textContent === '고정', 'hemophilia tagged 고정 in build2');
   chk(btag('EXHAUSTION')?.textContent === '자유', 'exhaustion tagged 자유 in build2');
+  chk(btag('CHRONIC FATIGUE SYNDROME')?.textContent === '자유', 'CFS tagged 자유 in build2');
+  chk(!cardByName('INCOMPETENT').classList.contains('on'), 'build2 avoids INCOMPETENT (level-30 goal)');
   $('#resetBtn').click();
   chk(document.querySelectorAll('.btag.fix, .btag.fr').length === 0, 'reset clears all tags');
 

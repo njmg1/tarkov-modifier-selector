@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.18';
+const APP_VERSION = '0.19';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -289,8 +289,10 @@ const ACHV_BUILDS = [
     fixed: [23, 13, 7, 18, 19, 20, 21] },   // kappa + street tax + the challenge 5
   { id: 'bare-run',
     name: { ko: '조합② 맨몸 하드코어', ja: '構成② 素手ハードコア', en: 'Build 2 — bare hardcore' },
-    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 28],
+    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 30],   // free picks avoid INCOMPETENT:
     fixed: [24, 25, 29, 33, 36, 34, 35] },  // gene-lottery 5 + BSC + no-flea
+                                            // -25% skill leveling would fight the
+                                            // level-30 goal, so CFS(+2) instead
 ];
 
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in

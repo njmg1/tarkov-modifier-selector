@@ -224,6 +224,28 @@
   }
   .aside-foot .left span:last-child { font-size: 15px; color: var(--ok); }
   .aside-foot .left.bad span:last-child { color: var(--bad); }
+  /* --------------------------------------------------- aside achievements */
+  .achv {
+    border-top: 1px solid var(--line);
+    padding: 10px 12px 12px;
+  }
+  .achv h3 {
+    font: 700 10.5px/1 var(--mono); letter-spacing: .14em;
+    color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;
+  }
+  .achv-row { display: flex; align-items: baseline; gap: 7px; padding: 3.5px 0; }
+  .achv-row .st { flex: 0 0 auto; font: 700 11px/1 var(--mono); color: var(--text-dim); width: 13px; }
+  .achv-row.met .st { color: var(--ok); }
+  .achv-row .anm { font-size: 12px; color: var(--text-dim); min-width: 0; }
+  .achv-row.met .anm { color: var(--text); }
+  .achv-row .ap {
+    margin-left: auto; flex: 0 0 auto;
+    font: 600 10.5px/1 var(--mono); font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+  }
+  .achv-row.met .ap { color: var(--ok); }
+  .achv-note { font-size: 10.5px; color: var(--text-dim); opacity: .75; margin: -2px 0 2px 20px; }
+  .achv-free { margin-top: 8px; font-size: 10.5px; color: var(--text-dim); opacity: .8; line-height: 1.5; }
 
   /* ------------------------------------------------------------ promo */
   .promo {
@@ -676,6 +698,11 @@
       <span class="count" id="pickCount">0 / 30</span>
     </div>
     <div class="picks" id="picks"></div>
+    <div class="achv" id="achv">
+      <h3 id="achvTitle">획득 가능 업적</h3>
+      <div id="achvList"></div>
+      <div class="achv-free" id="achvFree"></div>
+    </div>
     <div class="aside-foot">
       <div class="gain"><span id="gainLbl">디버프로 획득</span><span id="fGain">+0</span></div>
       <div class="cost"><span id="costLbl">퍽에 사용</span><span id="fCost">−0</span></div>
@@ -1030,6 +1057,46 @@
   // the aside and the phone sheet show the same list; each needs its own nodes
   const renderPicks = () => { renderPicksInto($picks); renderPicksInto($sheetPicks); };
 
+  // ------------------------------------------------- achievements (aside)
+  // Which season achievements does the CURRENT selection qualify for?
+  // Only the modifier half of each condition is checked; the in-game half
+  // (level 30, obtain Kappa, money…) rides along as a muted note.
+  const $achvList = document.getElementById('achvList');
+
+  function achvStatus(a) {
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const c = a.cond;
+    if (c.perksMax !== undefined) {
+      const n = picked.filter(m => m.cat === 'positive').length;
+      return { met: n <= c.perksMax, prog: n <= c.perksMax ? '✓' : t('achvPerkCount', { n }) };
+    }
+    if (c.negMin !== undefined) {
+      const n = picked.filter(m => m.cat === 'negative').length;
+      return { met: n >= c.negMin, prog: `${n}/${c.negMin}` };
+    }
+    if (c.pool) {
+      const n = c.pool.filter(id => selected.has(id)).length;
+      return { met: n >= c.n, prog: `${Math.min(n, c.n)}/${c.n}` };
+    }
+    const n = c.all.filter(id => selected.has(id)).length;
+    return { met: n === c.all.length, prog: `${n}/${c.all.length}` };
+  }
+
+  function renderAchievements() {
+    $achvList.replaceChildren();
+    for (const a of ACHIEVEMENTS) {
+      const { met, prog } = achvStatus(a);
+      const row = el('div', 'achv-row' + (met ? ' met' : ''));
+      row.append(el('span', 'st', met ? '✓' : '·'));
+      row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
+      row.append(el('span', 'ap', prog));
+      row.title = a.note[lang] ?? a.note.ko;
+      $achvList.append(row);
+      const note = el('div', 'achv-note', a.note[lang] ?? a.note.ko);
+      $achvList.append(note);
+    }
+  }
+
   // ---------------------------------------------------------------- logic
   const $balance = document.getElementById('balance');
   const $detail  = document.getElementById('meterDetail');
@@ -1066,6 +1133,7 @@
     $verdict.className = `verdict ${pass ? 'ok' : 'bad'}`;
 
     renderPicks();
+    renderAchievements();
     const nPicked = SELECTABLE.filter(m => selected.has(m.id)).length;
     document.getElementById('pickCount').textContent = `${nPicked} / ${SELECTABLE.length}`;
     document.getElementById('fGain').textContent = `+${gain}`;
@@ -1474,6 +1542,7 @@
     secKoGlobal: 'secGlobalKo', tallyGlobal: 'tallyGlobal',
     footerRule: 'footerRule', footerBudget: 'footerBudget', footerShare: 'footerShare',
     sheetLeftLbl: 'sheetLeft',
+    achvTitle: 'achvTitle', achvFree: 'achvFree',
     modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
     randomBtn: 'randomBtn', presetBtn: 'presetBtn', presetTitle: 'presetPanelTitle',
     presetHint: 'presetPanelHint', presetSaveBtn: 'slotSaveCurrent',

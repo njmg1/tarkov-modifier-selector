@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.12';
+const APP_VERSION = '0.13';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -230,6 +230,51 @@ const EXCLUSIONS = [
   { a: 31, b: 36, kind: 'official', axis: { ko: '상인 거래 가격', ja: 'トレーダー取引価格', en: 'Trader prices' } },
 ];
 
+// Season achievements that gate on the MODIFIER SELECTION (from the in-game
+// achievement list, 2026-08-04 screenshot). Only the selection-related half
+// of each condition is machine-checked; the rest (level 30, kappa, money…)
+// is shown as a note. Achievements with no modifier condition at all are
+// listed in the UI as a single muted line (see STRINGS.achvFree).
+//
+//   cond.all      — every listed id must be selected
+//   cond.pool/n   — at least n ids from pool must be selected
+//   cond.negMin   — at least this many negative modifiers selected
+//   cond.perksMax — at most this many positive modifiers selected
+const ACHIEVEMENTS = [
+  { id: 'no-help',
+    name: { ko: '도움 필요 없어', ja: '助けは要らない', en: 'No Help Needed' },
+    cond: { perksMax: 0 },
+    note: { ko: '+ 레벨 30 달성', ja: '+ レベル30達成', en: '+ reach level 30' } },
+  { id: 'had-plan',
+    name: { ko: '계획이 있었어', ja: '計画があった', en: 'I Had a Plan' },
+    cond: { negMin: 10 },
+    note: { ko: '+ 레벨 30 달성', ja: '+ レベル30達成', en: '+ reach level 30' } },
+  { id: 'gene-lottery',
+    name: { ko: '유전자 복권', ja: '遺伝子の宝くじ', en: 'Genetic Lottery' },
+    cond: { all: [24, 25, 29, 33, 36] },
+    note: { ko: '+ 레벨 30 달성', ja: '+ レベル30達成', en: '+ reach level 30' } },
+  { id: 'one-good-two-better',
+    name: { ko: '하나도 좋지만, 둘은 더 좋다', ja: '一つも良いが二つはもっと良い', en: 'One Is Good, Two Is Better' },
+    cond: { all: [23] },
+    note: { ko: '카파는 생성 즉시 지급', ja: 'カッパは作成時に即支給', en: 'Kappa granted on creation' } },
+  { id: 'new-era',
+    name: { ko: '새로운 시대의 시작', ja: '新時代の幕開け', en: 'Dawn of a New Era' },
+    cond: { all: [23] },
+    note: { ko: '정식 카파 획득으로도 달성 가능', ja: '正規のカッパ入手でも達成可', en: 'also earnable via the real Kappa' } },
+  { id: 'hardcore-home',
+    name: { ko: '우리 집에는 하드코어가 있다', ja: '我が家にはハードコアがある', en: 'We Have Hardcore at Home' },
+    cond: { all: [34, 35] },
+    note: { ko: '+ 보안 컨테이너 카파 획득', ja: '+ カッパコンテナ入手', en: '+ obtain container Kappa' } },
+  { id: 'call-that-challenge',
+    name: { ko: '그걸 도전이라고?', ja: 'それが挑戦だって？', en: 'You Call That a Challenge?' },
+    cond: { pool: [7, 12, 16, 18, 19, 20, 21, 37], n: 5 },
+    note: { ko: '+ 모든 생존 경로 임무 완료', ja: '+ 全サバイバル任務完了', en: '+ finish all survival-path tasks' } },
+  { id: 'born-entrepreneur',
+    name: { ko: '천생 기업가', ja: '生まれながらの起業家', en: 'Born Entrepreneur' },
+    cond: { all: [13] },
+    note: { ko: '+ 10억₽·1천만€·1천만$ 동시 보유', ja: '+ 10億₽・1千万€・1千万$同時所持', en: '+ hold 1B₽ / 10M€ / 10M$ at once' } },
+];
+
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in
 // index.html looks these up; `{name}`-style placeholders are substituted in.
 const STRINGS = {
@@ -321,6 +366,9 @@ const STRINGS = {
   slotClear:      { ko: '비우기', ja: 'クリア', en: 'Clear' },
   slotSaveCurrent:{ ko: '현재 조합 저장', ja: '現在の組み合わせを保存', en: 'Save current build' },
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
+  achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
+  achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  achvPerkCount:  { ko: '퍽 {n}개', ja: 'パーク{n}個', en: '{n} perks' },
   toastSlotSaved: { ko: '저장됨 · {name}', ja: '保存しました · {name}', en: 'Saved · {name}' },
   toastSlotLoaded:{ ko: '{name} 불러옴', ja: '{name} を読み込みました', en: 'Loaded {name}' },
   toastSlotCleared:{ ko: '슬롯을 비웠습니다', ja: 'スロットを空にしました', en: 'Slot cleared' },

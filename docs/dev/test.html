@@ -335,6 +335,44 @@ window.addEventListener('load', async () => {
   chk(bal() === '0', 'reset back to 0');
   chk($('#picks .picks-empty') !== null, 'sidebar empty again after reset');
 
+  // ---- achievements panel ----------------------------------------------
+  // The aside lists which season achievements the current selection is
+  // eligible for (modifier half only; the note carries the in-game half).
+  chk(document.querySelectorAll('#achvList .achv-row').length === ACHIEVEMENTS.length,
+      'one row per gated achievement');
+  const achvRow = ko => [...document.querySelectorAll('#achvList .achv-row')]
+    .find(r => r.querySelector('.anm').textContent === ko);
+  const met = ko => achvRow(ko).classList.contains('met');
+
+  // empty selection: "no perks" is trivially met, everything else is not
+  chk(met('도움 필요 없어'), 'no-perk feat met with empty selection');
+  chk(!met('하나도 좋지만, 둘은 더 좋다'), 'kappa feat unmet without kappa');
+
+  click('KAPPA PROTOCOL');
+  chk(met('하나도 좋지만, 둘은 더 좋다') && met('새로운 시대의 시작'),
+      'kappa select satisfies both kappa feats');
+  chk(!met('도움 필요 없어'), 'a perk breaks the no-perk feat');
+  $('#resetBtn').click();
+
+  // gene lottery needs its exact five debuffs
+  ['HEMOPHILIA','OSTEOPOROSIS','POLYDIPSIA','ALLERGIC'].forEach(click);
+  chk(!met('유전자 복권'), 'gene lottery 4/5 unmet');
+  chk(achvRow('유전자 복권').querySelector('.ap').textContent === '4/5', 'gene lottery shows 4/5');
+  click('THIRD LEG');
+  chk(met('유전자 복권'), 'gene lottery met at 5/5');
+  $('#resetBtn').click();
+
+  // "you call that a challenge?" counts any 5 of its pool of 8
+  ['MARATHON RUNNER','THROMBOPHILIA','HYPODIPSIA','POLYPHAGIA','STURDY BONES'].forEach(click);
+  chk(met('그걸 도전이라고?'), 'challenge feat met with 5 pool perks');
+  $('#resetBtn').click();
+
+  // "I had a plan" wants 10 negatives — count updates live
+  ['HEMOPHILIA','OSTEOPOROSIS','POLYDIPSIA'].forEach(click);
+  chk(achvRow('계획이 있었어').querySelector('.ap').textContent === '3/10', 'plan feat shows 3/10');
+  chk(!met('계획이 있었어'), 'plan feat unmet at 3');
+  $('#resetBtn').click();
+
   // ---- bottom sheet ----------------------------------------------------
   // There must be exactly one toolbar and one set of button ids, wherever it lives.
   chk(document.querySelectorAll('.tools').length === 1, 'exactly one .tools node');

@@ -435,6 +435,14 @@ window.addEventListener('load', async () => {
   chk(!cardByName('INCOMPETENT').classList.contains('on'), 'build2 avoids INCOMPETENT (level-30 goal)');
   $('#resetBtn').click();
   chk(document.querySelectorAll('.btag.fix, .btag.fr').length === 0, 'reset clears all tags');
+  // Dawn of a New Era is a general achievement, not seasonal — pinned last
+  {
+    const rows = [...document.querySelectorAll('#achvList .achv-row')];
+    chk(rows[rows.length - 1].querySelector('.anm').textContent === '새로운 시대의 시작',
+        'non-seasonal new-era row sits last');
+    const notes = [...document.querySelectorAll('#achvList .achv-note')];
+    chk(/시즌 한정 아님/.test(notes[notes.length - 1].textContent), 'new-era note says non-seasonal');
+  }
 
   $('#resetBtn').click();
   {

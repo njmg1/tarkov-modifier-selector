@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.16';
+const APP_VERSION = '0.17';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -278,6 +278,19 @@ const ACHIEVEMENTS = [
     note: { ko: '+ 5억₽·100만€·100만$ 동시 보유', ja: '+ 5億₽・100万€・100万$同時所持', en: '+ hold 500M₽ / 1M€ / 1M$ at once' } },
 ];
 
+// One-tap example builds for the achievement roadmap: the two verified
+// minimal-plan characters. Fixed picks only ARE part of the plan; the filler
+// (debuffs on build 1, the 3 extra debuffs on build 2) matches the examples
+// in the roadmap doc/slides so the sums land on +1 / +44.
+const ACHV_BUILDS = [
+  { id: 'kappa-run',
+    name: { ko: '조합① 카파 만능', ja: '構成① カッパ万能', en: 'Build 1 — Kappa run' },
+    ids: [23, 13, 7, 18, 19, 20, 21, 28, 34, 35] },
+  { id: 'bare-run',
+    name: { ko: '조합② 맨몸 하드코어', ja: '構成② 素手ハードコア', en: 'Build 2 — bare hardcore' },
+    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 28] },
+];
+
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in
 // index.html looks these up; `{name}`-style placeholders are substituted in.
 const STRINGS = {
@@ -371,6 +384,9 @@ const STRINGS = {
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
   achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  achvBuild1:     { ko: '조합①', ja: '構成①', en: 'Build 1' },
+  achvBuild2:     { ko: '조합②', ja: '構成②', en: 'Build 2' },
+  achvApplied:    { ko: '{name} 적용됨', ja: '{name} を適用しました', en: 'Applied {name}' },
   achvBlocked:    { ko: '불가', ja: '不可', en: 'void' },
   achvCondNoPerks:{ ko: '긍정(퍽)을 하나도 선택하지 않기', ja: 'ポジティブ(パーク)を一つも選ばない', en: 'pick no positive modifiers' },
   achvCondNegMin: { ko: '부정(디버프) {n}개 이상 선택', ja: 'ネガティブ(デバフ)を{n}個以上選択', en: 'pick {n}+ negative modifiers' },

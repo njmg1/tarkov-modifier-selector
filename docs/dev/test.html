@@ -407,6 +407,18 @@ window.addEventListener('load', async () => {
     row.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     chk($('#achvTip').hidden, 'tooltip closes on leave');
   }
+  // one-tap example builds next to the panel title
+  $('#achvBuild1').click();
+  chk(bal() === '1', 'build1 button applies the kappa run (+1): got ' + bal());
+  chk(met('하나도 좋지만, 둘은 더 좋다') && met('그걸 도전이라고?') && met('천생 기업가'),
+      'build1 satisfies its 4 achievements');
+  chk(!met('우리 집에는 하드코어가 있다'), 'build1 correctly voids hardcore-home');
+  $('#achvBuild2').click();
+  chk(bal() === '44', 'build2 button applies the bare run (+44): got ' + bal());
+  chk(met('도움 필요 없어') && met('계획이 있었어') && met('유전자 복권') && met('우리 집에는 하드코어가 있다'),
+      'build2 satisfies its 4 gated achievements');
+  chk(document.querySelectorAll('#sheetAchv .achv-build').length === 2, 'sheet strip carries both build buttons');
+
   $('#resetBtn').click();
   {
     const row2 = achvRow('유전자 복권');

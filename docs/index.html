@@ -229,10 +229,20 @@
     border-top: 1px solid var(--line);
     padding: 10px 12px 12px;
   }
+  .achv-head2 { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .achv h3 {
     font: 700 10.5px/1 var(--mono); letter-spacing: .14em;
-    color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-right: auto;
   }
+  .achv-build {
+    font: 600 10px/1 var(--mono); color: var(--text-dim);
+    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    border-radius: 4px; padding: 5px 8px; cursor: pointer;
+  }
+  .achv-build:hover { color: var(--text); border-color: var(--text-dim); }
+  .sheet-achv .achv-build { margin-left: auto; }
+  .sheet-achv .achv-build + .achv-build { margin-left: 0; }
   .achv-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
   .achv-row .aic {
     flex: 0 0 auto; width: 16px; height: 16px; background: var(--text-dim); opacity: .55;
@@ -733,7 +743,11 @@
     </div>
     <div class="picks" id="picks"></div>
     <div class="achv" id="achv">
-      <h3 id="achvTitle">획득 가능 업적</h3>
+      <div class="achv-head2">
+        <h3 id="achvTitle">획득 가능 업적</h3>
+        <button class="achv-build" id="achvBuild1">조합①</button>
+        <button class="achv-build" id="achvBuild2">조합②</button>
+      </div>
       <div id="achvList"></div>
       <div class="achv-free" id="achvFree"></div>
     </div>
@@ -1165,6 +1179,18 @@
     $achvTip.style.top = `${Math.max(8, y)}px`;
   }
   const hideAchvTip = () => { $achvTip.hidden = true; };
+
+  // one-tap example builds (the two verified roadmap characters)
+  function applyAchvBuild(b) {
+    selected.clear();
+    dropConflicts(new Set(b.ids)).forEach(id => selected.add(id));
+    save();
+    render();
+    hideAchvTip();
+    toast(t('achvApplied', { name: b.name[lang] ?? b.name.ko }));
+  }
+  document.getElementById('achvBuild1').addEventListener('click', () => applyAchvBuild(ACHV_BUILDS[0]));
+  document.getElementById('achvBuild2').addEventListener('click', () => applyAchvBuild(ACHV_BUILDS[1]));
   addEventListener('scroll', hideAchvTip, true);
   addEventListener('resize', hideAchvTip);
 
@@ -1201,6 +1227,12 @@
       sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
       hookAchvTip(sic, a);
       $sheetAchv.append(sic);
+    }
+    // the same two example-build buttons, phone-sized
+    for (const [i, b] of ACHV_BUILDS.entries()) {
+      const btn = el('button', 'achv-build', t(i === 0 ? 'achvBuild1' : 'achvBuild2'));
+      btn.addEventListener('click', (e) => { e.stopPropagation(); applyAchvBuild(b); });
+      $sheetAchv.append(btn);
     }
   }
 
@@ -1650,6 +1682,7 @@
     footerRule: 'footerRule', footerBudget: 'footerBudget', footerShare: 'footerShare',
     sheetLeftLbl: 'sheetLeft',
     achvTitle: 'achvTitle', achvFree: 'achvFree',
+    achvBuild1: 'achvBuild1', achvBuild2: 'achvBuild2',
     modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
     randomBtn: 'randomBtn', presetBtn: 'presetBtn', presetTitle: 'presetPanelTitle',
     presetHint: 'presetPanelHint', presetSaveBtn: 'slotSaveCurrent',

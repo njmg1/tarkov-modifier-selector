@@ -386,16 +386,17 @@ window.addEventListener('load', async () => {
       'sheet achievement strip mirrors the panel');
   $('#resetBtn').click();
 
-  // Kappa Protocol VOIDS "hardcore at home" (the container is granted, never
-  // obtained) — the row must flip to a warning, not a checkmark
+  // Kappa Protocol only CAUTIONS "hardcore at home" — a properly-obtained
+  // Kappa still counts, so the row keeps its checkmark but turns amber
   ['BROKEN SECURE CONTAINER','NO FLEA MARKET'].forEach(click);
   chk(met('우리 집에는 하드코어가 있다'), 'hardcore-home met with BSC+NFM, no kappa');
+  chk(!achvRow('우리 집에는 하드코어가 있다').classList.contains('wrn'), 'no caution without kappa');
   click('KAPPA PROTOCOL');
-  chk(!met('우리 집에는 하드코어가 있다'), 'kappa protocol voids hardcore-home');
-  chk(achvRow('우리 집에는 하드코어가 있다').classList.contains('blk'), 'voided row flagged blk');
-  chk(/불가/.test(achvRow('우리 집에는 하드코어가 있다').querySelector('.ap').textContent),
-      'voided row says 불가');
-  chk(document.querySelectorAll('#sheetAchv .aic.blk').length === 1, 'sheet strip shows the void too');
+  chk(met('우리 집에는 하드코어가 있다'), 'still met with kappa — a proper kappa still counts');
+  chk(achvRow('우리 집에는 하드코어가 있다').classList.contains('wrn'), 'cautioned row flagged wrn');
+  chk(/⚠/.test(achvRow('우리 집에는 하드코어가 있다').querySelector('.ap').textContent),
+      'cautioned row carries the warning mark');
+  chk(document.querySelectorAll('#sheetAchv .aic.wrn').length === 1, 'sheet strip shows the caution too');
 
   // hovering a row opens the rich tooltip with the full requirement text
   {
@@ -403,7 +404,7 @@ window.addEventListener('load', async () => {
     row.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
     chk(!$('#achvTip').hidden, 'hover opens the achievement tooltip');
     chk(/우리 집에는 하드코어가 있다/.test($('#achvTip').textContent), 'tooltip carries the name');
-    chk(/획득.*성립하지 않음/.test($('#achvTip').textContent), 'voided tooltip explains why');
+    chk(/획득.*인정되지 않을 것/.test($('#achvTip').textContent), 'caution tooltip explains why');
     row.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     chk($('#achvTip').hidden, 'tooltip closes on leave');
   }
@@ -413,7 +414,7 @@ window.addEventListener('load', async () => {
   chk(met('하나도 좋지만, 둘은 더 좋다') && met('그걸 도전이라고?') && met('천생 기업가'),
       'build1 satisfies its 4 achievements');
   chk(!cardByName('NO FLEA MARKET').classList.contains('on'), 'build1 keeps the flea market usable');
-  chk(!met('우리 집에는 하드코어가 있다'), 'build1 correctly voids hardcore-home');
+  chk(!met('우리 집에는 하드코어가 있다'), 'build1 leaves hardcore-home unmet (NFM not selected)');
   $('#achvBuild2').click();
   chk(bal() === '36', 'build2 button applies the bare run (+36): got ' + bal());
   chk(met('도움 필요 없어') && met('계획이 있었어') && met('유전자 복권') && met('우리 집에는 하드코어가 있다'),

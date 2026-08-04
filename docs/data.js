@@ -21,7 +21,7 @@
 // still the fan translation.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.23';
+const APP_VERSION = '0.24';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -257,14 +257,16 @@ const ACHIEVEMENTS = [
   { id: 'one-good-two-better',
     name: { ko: '하나도 좋지만, 둘은 더 좋다', ja: '一つも良いが二つはもっと良い', en: 'One Is Good, Two is Better' },
     cond: { all: [23] },
-    note: { ko: '카파는 생성 즉시 지급', ja: 'カッパは作成時に即支給', en: 'Kappa granted on creation' } },
+    note: { ko: '+ 정식 카파를 별도로 획득해야 하는 것으로 추정 (이름대로 2개째)',
+            ja: '+ 正規のカッパを別途入手する必要があると推定（名前どおり2個目）',
+            en: '+ likely also needs a second, properly-obtained Kappa' } },
   { id: 'hardcore-home',
     name: { ko: '우리 집에는 하드코어가 있다', ja: '我が家にはハードコアがある', en: 'We Have Hardcore at Home' },
-    cond: { all: [34, 35], not: [23] },
-    note: { ko: '+ 카파를 직접 획득 (콜렉터)', ja: '+ カッパを自力入手（コレクター）', en: '+ obtain Kappa yourself (Collector)' },
-    warn: { ko: '카파 프로토콜 선택 시 달성 불가 — 시작부터 지급되면 \'획득\' 과정이 성립하지 않음',
-            ja: 'カッパプロトコル選択時は達成不可 — 最初から支給されると「入手」が成立しない',
-            en: 'Void with Kappa Protocol — a container granted at creation is never "obtained"' } },
+    cond: { all: [34, 35], caution: [23] },
+    note: { ko: '+ 카파를 정식으로 획득 (콜렉터 등)', ja: '+ カッパを正規に入手（コレクター等）', en: '+ obtain Kappa properly (Collector etc.)' },
+    warn: { ko: '주의: 카파 프로토콜 지급분은 \'획득\'으로 인정되지 않을 것 — 별도로 정식 획득해야 함',
+            ja: '注意: カッパプロトコルの支給分は「入手」と認められない見込み — 別途正規入手が必要',
+            en: 'Caution: the protocol handout likely does not count as "obtaining" — get one properly too' } },
   { id: 'call-that-challenge',
     name: { ko: '그걸 도전이라고?', ja: 'それが挑戦だって？', en: 'You Call That a Challenge?' },
     cond: { pool: [7, 12, 16, 18, 19, 20, 21, 37], n: 5 },
@@ -404,7 +406,7 @@ const STRINGS = {
   achvBuild1:     { ko: '조합①', ja: '構成①', en: 'Build 1' },
   achvBuild2:     { ko: '조합②', ja: '構成②', en: 'Build 2' },
   achvApplied:    { ko: '{name} 적용됨', ja: '{name} を適用しました', en: 'Applied {name}' },
-  achvBlocked:    { ko: '불가', ja: '不可', en: 'void' },
+  achvCaution:    { ko: '주의', ja: '注意', en: 'caution' },
   achvCondNoPerks:{ ko: '긍정(퍽)을 하나도 선택하지 않기', ja: 'ポジティブ(パーク)を一つも選ばない', en: 'pick no positive modifiers' },
   achvCondNegMin: { ko: '부정(디버프) {n}개 이상 선택', ja: 'ネガティブ(デバフ)を{n}個以上選択', en: 'pick {n}+ negative modifiers' },
   achvCondNeed:   { ko: '필요: {list}', ja: '必要: {list}', en: 'requires: {list}' },

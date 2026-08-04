@@ -249,10 +249,9 @@
     -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
   }
   .achv-row.met .aic { background: var(--ok); opacity: 1; }
-  .achv-row.blk .aic { background: var(--bad); opacity: .9; }
-  .achv-row.blk .anm { color: var(--bad); text-decoration: line-through; }
-  .achv-row.blk .ap { color: var(--bad); }
-  .achv-note.warn { color: var(--bad); opacity: .85; }
+  .achv-row.wrn .aic { background: #d9a33c; opacity: .95; }
+  .achv-row.wrn .ap { color: #d9a33c; }
+  .achv-note.warn { color: #d9a33c; opacity: .9; }
   .achv-row .anm { font-size: 12px; color: var(--text-dim); min-width: 0; }
   .achv-row.met .anm { color: var(--text); }
   .achv-row .ap {
@@ -273,7 +272,7 @@
     -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
   }
   .sheet-achv .aic.met { background: var(--ok); opacity: 1; }
-  .sheet-achv .aic.blk { background: var(--bad); opacity: .9; }
+  .sheet-achv .aic.wrn { background: #d9a33c; opacity: .95; }
   /* rich hover card for achievements (rows + phone strip icons) */
   .achv-tip {
     position: fixed; z-index: 90; max-width: 360px;
@@ -1125,24 +1124,24 @@
   function achvStatus(a) {
     const picked = SELECTABLE.filter(m => selected.has(m.id));
     const c = a.cond;
-    // a "voided by" modifier (e.g. Kappa Protocol hands out the container the
-    // achievement wants you to EARN) beats everything else
-    if (c.not && c.not.some(id => selected.has(id)))
-      return { met: false, blocked: true, prog: t('achvBlocked') };
+    // a "caution" modifier doesn't break the achievement, but changes how the
+    // in-game half works (e.g. Kappa Protocol's handout likely won't count as
+    // "obtaining" — a proper one is still needed on the side)
+    const caution = !!(c.caution && c.caution.some(id => selected.has(id)));
     if (c.perksMax !== undefined) {
       const n = picked.filter(m => m.cat === 'positive').length;
-      return { met: n <= c.perksMax, prog: n <= c.perksMax ? '✓' : t('achvPerkCount', { n }) };
+      return { caution, met: n <= c.perksMax, prog: n <= c.perksMax ? '✓' : t('achvPerkCount', { n }) };
     }
     if (c.negMin !== undefined) {
       const n = picked.filter(m => m.cat === 'negative').length;
-      return { met: n >= c.negMin, prog: `${n}/${c.negMin}` };
+      return { caution, met: n >= c.negMin, prog: `${n}/${c.negMin}` };
     }
     if (c.pool) {
       const n = c.pool.filter(id => selected.has(id)).length;
-      return { met: n >= c.n, prog: `${Math.min(n, c.n)}/${c.n}` };
+      return { caution, met: n >= c.n, prog: `${Math.min(n, c.n)}/${c.n}` };
     }
     const n = c.all.filter(id => selected.has(id)).length;
-    return { met: n === c.all.length, prog: `${n}/${c.all.length}` };
+    return { caution, met: n === c.all.length, prog: `${n}/${c.all.length}` };
   }
 
   // THIRD LEG's display name carries a long quip in ko/ja — too long for the
@@ -1165,15 +1164,15 @@
   const $achvTip = document.getElementById('achvTip');
 
   function showAchvTip(a, anchor) {
-    const { met, blocked, prog } = achvStatus(a);   // re-evaluate: fresh status
+    const { met, caution, prog } = achvStatus(a);   // re-evaluate: fresh status
     const cond = achvCondText(a);
     $achvTip.replaceChildren(
       el('div', 't-name', a.name[lang] ?? a.name.ko),
-      el('div', 't-status ' + (blocked ? 'bad' : met ? 'ok' : 'no'),
-        blocked ? `⚠ ${t('achvBlocked')}` : met ? `✓ ${prog}` : prog),
+      el('div', 't-status ' + (met ? 'ok' : 'no'),
+        (met ? `✓ ${prog}` : prog) + (caution ? ` · ⚠ ${t('achvCaution')}` : '')),
       el('div', 't-cond', cond),
-      el('div', 't-note' + (blocked ? ' warn' : ''),
-        blocked ? `⚠ ${a.warn[lang] ?? a.warn.ko}` : (a.note[lang] ?? a.note.ko)),
+      el('div', 't-note' + (caution ? ' warn' : ''),
+        caution ? `⚠ ${a.warn[lang] ?? a.warn.ko}` : (a.note[lang] ?? a.note.ko)),
     );
     $achvTip.hidden = false;
     // measure, then place beside the anchor and clamp to the viewport
@@ -1225,23 +1224,23 @@
     $achvList.replaceChildren();
     $sheetAchv.replaceChildren();
     for (const a of ACHIEVEMENTS) {
-      const { met, blocked, prog } = achvStatus(a);
+      const { met, caution, prog } = achvStatus(a);
       const cond = achvCondText(a);
-      const note = blocked ? (a.warn[lang] ?? a.warn.ko) : (a.note[lang] ?? a.note.ko);
+      const note = caution ? (a.warn[lang] ?? a.warn.ko) : (a.note[lang] ?? a.note.ko);
 
-      const row = el('div', 'achv-row' + (met ? ' met' : '') + (blocked ? ' blk' : ''));
+      const row = el('div', 'achv-row' + (met ? ' met' : '') + (caution ? ' wrn' : ''));
       const ic = el('span', 'aic');
       ic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
       row.append(ic);
       row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
-      row.append(el('span', 'ap', blocked ? `⚠ ${prog}` : prog));
+      row.append(el('span', 'ap', caution ? `⚠ ${prog}` : prog));
       hookAchvTip(row, a);
       $achvList.append(row);
-      $achvList.append(el('div', 'achv-note' + (blocked ? ' warn' : ''),
-        blocked ? `⚠ ${note}` : `${cond} — ${note}`));
+      $achvList.append(el('div', 'achv-note' + (caution ? ' warn' : ''),
+        caution ? `⚠ ${note}` : `${cond} — ${note}`));
 
-      // phone strip: icon only — green when satisfied, red when voided
-      const sic = el('span', 'aic' + (met ? ' met' : '') + (blocked ? ' blk' : ''));
+      // phone strip: icon only — green when satisfied, amber when cautioned
+      const sic = el('span', 'aic' + (met ? ' met' : '') + (caution ? ' wrn' : ''));
       sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
       hookAchvTip(sic, a);
       $sheetAchv.append(sic);

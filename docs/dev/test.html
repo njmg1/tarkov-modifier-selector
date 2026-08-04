@@ -404,7 +404,7 @@ window.addEventListener('load', async () => {
     row.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
     chk(!$('#achvTip').hidden, 'hover opens the achievement tooltip');
     chk(/우리 집에는 하드코어가 있다/.test($('#achvTip').textContent), 'tooltip carries the name');
-    chk(/획득.*인정되지 않을 것/.test($('#achvTip').textContent), 'caution tooltip explains why');
+    chk(/획득.*인정 안 됨/.test($('#achvTip').textContent), 'caution tooltip explains why');
     row.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     chk($('#achvTip').hidden, 'tooltip closes on leave');
   }
@@ -416,7 +416,7 @@ window.addEventListener('load', async () => {
   chk(!cardByName('NO FLEA MARKET').classList.contains('on'), 'build1 keeps the flea market usable');
   chk(!met('우리 집에는 하드코어가 있다'), 'build1 leaves hardcore-home unmet (NFM not selected)');
   $('#achvBuild2').click();
-  chk(bal() === '36', 'build2 button applies the bare run (+36): got ' + bal());
+  chk(bal() === '32', 'build2 button applies the bare run (+32): got ' + bal());
   chk(met('도움 필요 없어') && met('계획이 있었어') && met('유전자 복권') && met('우리 집에는 하드코어가 있다'),
       'build2 satisfies its 4 gated achievements');
   chk(document.querySelectorAll('#sheetAchv .achv-build').length === 2, 'sheet strip carries both build buttons');
@@ -432,7 +432,7 @@ window.addEventListener('load', async () => {
       'unselected card carries no visible tag');
   $('#achvBuild2').click();
   chk(btag('HEMOPHILIA')?.textContent === '고정', 'hemophilia tagged 고정 in build2');
-  chk(btag('EXHAUSTION')?.textContent === '자유', 'exhaustion tagged 자유 in build2');
+  chk(btag('DR. JEKYLL')?.textContent === '자유', 'jekyll tagged 자유 in build2');
   chk(btag('CHRONIC FATIGUE SYNDROME')?.textContent === '자유', 'CFS tagged 자유 in build2');
   chk(!cardByName('INCOMPETENT').classList.contains('on'), 'build2 avoids INCOMPETENT (level-30 goal)');
   $('#resetBtn').click();

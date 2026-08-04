@@ -21,7 +21,7 @@
 // still the fan translation.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.24';
+const APP_VERSION = '0.25';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -264,9 +264,9 @@ const ACHIEVEMENTS = [
     name: { ko: '우리 집에는 하드코어가 있다', ja: '我が家にはハードコアがある', en: 'We Have Hardcore at Home' },
     cond: { all: [34, 35], caution: [23] },
     note: { ko: '+ 카파를 정식으로 획득 (콜렉터 등)', ja: '+ カッパを正規に入手（コレクター等）', en: '+ obtain Kappa properly (Collector etc.)' },
-    warn: { ko: '주의: 카파 프로토콜 지급분은 \'획득\'으로 인정되지 않을 것 — 별도로 정식 획득해야 함',
-            ja: '注意: カッパプロトコルの支給分は「入手」と認められない見込み — 別途正規入手が必要',
-            en: 'Caution: the protocol handout likely does not count as "obtaining" — get one properly too' } },
+    warn: { ko: '확정: 카파 프로토콜 지급분은 \'획득\'으로 인정 안 됨 (실험 확인) — 정식 획득이 별도로 필요',
+            ja: '確定: カッパプロトコルの支給分は「入手」と認められない（検証済み）— 正規入手が別途必要',
+            en: 'Confirmed: the protocol handout does NOT count as "obtaining" — a proper one is needed' } },
   { id: 'call-that-challenge',
     name: { ko: '그걸 도전이라고?', ja: 'それが挑戦だって？', en: 'You Call That a Challenge?' },
     cond: { pool: [7, 12, 16, 18, 19, 20, 21, 37], n: 5 },
@@ -302,10 +302,11 @@ const ACHV_BUILDS = [
     fixed: [23, 13, 7, 18, 19, 20, 21] },   // kappa + street tax + the challenge 5
   { id: 'bare-run',
     name: { ko: '조합② 맨몸 하드코어', ja: '構成② 素手ハードコア', en: 'Build 2 — bare hardcore' },
-    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 30],   // free picks avoid INCOMPETENT:
-    fixed: [24, 25, 29, 33, 36, 34, 35] },  // gene-lottery 5 + BSC + no-flea
-                                            // -25% skill leveling would fight the
-                                            // level-30 goal, so CFS(+2) instead
+    ids: [24, 25, 29, 33, 36, 34, 35, 32, 27, 30],   // free picks per the video
+    fixed: [24, 25, 29, 33, 36, 34, 35] },  // script: Jekyll + Well That Hurt +
+                                            // CFS. INCOMPETENT stays out — -25%
+                                            // skill leveling fights the level-30
+                                            // + Collector long game
 ];
 
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in

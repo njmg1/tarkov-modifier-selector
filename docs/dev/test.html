@@ -409,9 +409,10 @@ window.addEventListener('load', async () => {
   }
   // one-tap example builds next to the panel title
   $('#achvBuild1').click();
-  chk(bal() === '1', 'build1 button applies the kappa run (+1): got ' + bal());
+  chk(bal() === '0', 'build1 button applies the kappa run (exactly 0): got ' + bal());
   chk(met('하나도 좋지만, 둘은 더 좋다') && met('그걸 도전이라고?') && met('천생 기업가'),
       'build1 satisfies its 4 achievements');
+  chk(!cardByName('NO FLEA MARKET').classList.contains('on'), 'build1 keeps the flea market usable');
   chk(!met('우리 집에는 하드코어가 있다'), 'build1 correctly voids hardcore-home');
   $('#achvBuild2').click();
   chk(bal() === '36', 'build2 button applies the bare run (+36): got ' + bal());

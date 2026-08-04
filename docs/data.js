@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.21';
+const APP_VERSION = '0.22';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -290,7 +290,12 @@ const ACHIEVEMENTS = [
 const ACHV_BUILDS = [
   { id: 'kappa-run',
     name: { ko: '조합① 카파 만능', ja: '構成① カッパ万能', en: 'Build 1 — Kappa run' },
-    ids: [23, 13, 7, 18, 19, 20, 21, 28, 34, 35],
+    // Debuffs deliberately skip NO FLEA MARKET (keep the flea usable for the
+    // Entrepreneur money grind). Without its +10 the budget is razor-thin:
+    // every remaining non-conflicting debuff is needed, landing on exactly 0.
+    // (THIRD LEG loses its slot to PERSONALITY VACUUM — they're exclusive
+    // and +2 beats +1.)
+    ids: [23, 13, 7, 18, 19, 20, 21, 28, 34, 27, 31, 33, 32, 39],
     fixed: [23, 13, 7, 18, 19, 20, 21] },   // kappa + street tax + the challenge 5
   { id: 'bare-run',
     name: { ko: '조합② 맨몸 하드코어', ja: '構成② 素手ハードコア', en: 'Build 2 — bare hardcore' },

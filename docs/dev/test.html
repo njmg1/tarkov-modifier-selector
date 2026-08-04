@@ -153,17 +153,17 @@ window.addEventListener('load', async () => {
 
   // all three clipped source translations have been filled in
   chk(document.querySelectorAll('.ko .trunc').length === 0, 'no truncation markers left');
-  chk(/75% 줄어듦$/.test(cardByName('BUSHBORNE').querySelector('.ko').textContent), 'bushborne ko complete');
-  chk(/\(크래프팅 제외\)$/.test(cardByName('INCOMPETENT').querySelector('.ko').textContent), 'incompetent ko complete');
-  chk(/생기는 디버프\)$/.test(cardByName('DR. JEKYLL').querySelector('.ko').textContent), 'dr jekyll ko complete');
+  chk(/75% 감소합니다$/.test(cardByName('BUSHBORNE').querySelector('.ko').textContent), 'bushborne ko complete');
+  chk(/\(제작 스킬 제외\)$/.test(cardByName('INCOMPETENT').querySelector('.ko').textContent), 'incompetent ko complete');
+  chk(/사라지지 않습니다$/.test(cardByName('DR. JEKYLL').querySelector('.ko').textContent), 'dr jekyll ko complete');
 
   // korean titles beside the english ones
   chk(document.querySelectorAll('.ko-name').length === 39, '39 korean titles');
   const koTitle = n => cardByName(n).querySelector('.ko-name').textContent;
   for (const [en, ko] of [
-    ['KAPPA PROTOCOL', '카파 프로토콜'], ['NO FLEA MARKET', '플리마켓 금지'],
-    ['DIET', '다이어트'], ['WELL THAT HURT!', '개아픔;;'],
-    ['BUSHBORNE', '부시본 (하이드 온 부쉬)'], ['INCOMPETENT', '무능'], ['DR. JEKYLL', '지킬박사'],
+    ['KAPPA PROTOCOL', '카파 프로토콜'], ['NO FLEA MARKET', '플리마켓 금지령'],
+    ['DIET', '식단 조절'], ['WELL THAT HURT!', '아고, 아파라!'],
+    ['BUSHBORNE', '수색대'], ['INCOMPETENT', '폐급'], ['DR. JEKYLL', '지킬 박사'],
   ]) chk(koTitle(en) === ko, `ko title ${en} = ${ko} (got ${koTitle(en)})`);
 
   // ---- exclusions ------------------------------------------------------
@@ -291,7 +291,7 @@ window.addEventListener('load', async () => {
   chk($('#picks .picks-empty') === null, 'placeholder gone');
   chk($('#pickCount').textContent === '2 / 33', 'count 2/33');
   // handicaps group first, perks second
-  chk(pickNames().join('|') === '플리마켓 금지|단거리 주자', 'grouped handicap-then-perk: ' + pickNames());
+  chk(pickNames().join('|') === '플리마켓 금지령|스프린터', 'grouped handicap-then-perk: ' + pickNames());
   chk($('#fGain').textContent === '+10', 'sidebar gain +10');
   chk($('#fCost').textContent === '−3', 'sidebar cost −3');
   chk($('#fLeft').textContent === '7', 'sidebar balance 7');
@@ -322,7 +322,7 @@ window.addEventListener('load', async () => {
   }
 
   // clicking a row deselects that modifier
-  picks().find(p => p.querySelector('.nm').textContent === '단거리 주자').click();
+  picks().find(p => p.querySelector('.nm').textContent === '스프린터').click();
   chk(picks().length === 1, 'row click removed the perk');
   chk(cardByName('SPRINTER').classList.contains('on') === false, 'card deselected too');
   chk(bal() === '10', 'balance back to 10 after row removal');

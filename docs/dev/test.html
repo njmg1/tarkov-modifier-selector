@@ -396,6 +396,24 @@ window.addEventListener('load', async () => {
   chk(/불가/.test(achvRow('우리 집에는 하드코어가 있다').querySelector('.ap').textContent),
       'voided row says 불가');
   chk(document.querySelectorAll('#sheetAchv .aic.blk').length === 1, 'sheet strip shows the void too');
+
+  // hovering a row opens the rich tooltip with the full requirement text
+  {
+    const row = achvRow('우리 집에는 하드코어가 있다');
+    row.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+    chk(!$('#achvTip').hidden, 'hover opens the achievement tooltip');
+    chk(/우리 집에는 하드코어가 있다/.test($('#achvTip').textContent), 'tooltip carries the name');
+    chk(/획득.*성립하지 않음/.test($('#achvTip').textContent), 'voided tooltip explains why');
+    row.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    chk($('#achvTip').hidden, 'tooltip closes on leave');
+  }
+  $('#resetBtn').click();
+  {
+    const row2 = achvRow('유전자 복권');
+    row2.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+    chk(/혈우병.*골다공증/.test($('#achvTip').textContent), 'tooltip lists required modifiers');
+    row2.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+  }
   $('#resetBtn').click();
 
   // ---- bottom sheet ----------------------------------------------------

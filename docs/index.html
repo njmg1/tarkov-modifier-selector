@@ -264,6 +264,22 @@
   }
   .sheet-achv .aic.met { background: var(--ok); opacity: 1; }
   .sheet-achv .aic.blk { background: var(--bad); opacity: .9; }
+  /* rich hover card for achievements (rows + phone strip icons) */
+  .achv-tip {
+    position: fixed; z-index: 90; max-width: 360px;
+    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.5);
+    pointer-events: none;
+  }
+  .achv-tip .t-name { font-size: 13.5px; font-weight: 700; }
+  .achv-tip .t-status { font: 600 11px/1 var(--mono); margin-top: 6px; }
+  .achv-tip .t-status.ok { color: var(--ok); }
+  .achv-tip .t-status.no { color: var(--text-dim); }
+  .achv-tip .t-status.bad { color: var(--bad); }
+  .achv-tip .t-cond { font-size: 12px; color: var(--text); margin-top: 8px; line-height: 1.55; }
+  .achv-tip .t-note { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+  .achv-tip .t-note.warn { color: var(--bad); }
 
   /* ------------------------------------------------------------ promo */
   .promo {
@@ -858,6 +874,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="achv-tip" id="achvTip" hidden></div>
 
 <script src="data.js"></script>
 <script src="icons.js"></script>
@@ -1119,6 +1136,47 @@
 
   const $sheetAchv = document.getElementById('sheetAchv');
 
+  // Rich hover card: the aside rows are too narrow to spell everything out,
+  // so pointerenter shows the full name / status / requirement / note in a
+  // floating panel. On touch (the phone strip) the same card toggles on tap.
+  const $achvTip = document.getElementById('achvTip');
+
+  function showAchvTip(a, anchor) {
+    const { met, blocked, prog } = achvStatus(a);   // re-evaluate: fresh status
+    const cond = achvCondText(a);
+    $achvTip.replaceChildren(
+      el('div', 't-name', a.name[lang] ?? a.name.ko),
+      el('div', 't-status ' + (blocked ? 'bad' : met ? 'ok' : 'no'),
+        blocked ? `⚠ ${t('achvBlocked')}` : met ? `✓ ${prog}` : prog),
+      el('div', 't-cond', cond),
+      el('div', 't-note' + (blocked ? ' warn' : ''),
+        blocked ? `⚠ ${a.warn[lang] ?? a.warn.ko}` : (a.note[lang] ?? a.note.ko)),
+    );
+    $achvTip.hidden = false;
+    // measure, then place beside the anchor and clamp to the viewport
+    const r = anchor.getBoundingClientRect();
+    const tw = $achvTip.offsetWidth, th = $achvTip.offsetHeight;
+    let x = r.right + 12, y = r.top - 4;
+    if (x + tw > innerWidth - 8) x = Math.max(8, r.left - tw - 12);   // flip left
+    if (y + th > innerHeight - 8) y = innerHeight - th - 8;
+    if (y < 8) y = 8;
+    if (x + tw > innerWidth - 8) { x = Math.min(innerWidth - tw - 8, r.left); y = r.top - th - 10; } // above (phone strip)
+    $achvTip.style.left = `${Math.max(8, x)}px`;
+    $achvTip.style.top = `${Math.max(8, y)}px`;
+  }
+  const hideAchvTip = () => { $achvTip.hidden = true; };
+  addEventListener('scroll', hideAchvTip, true);
+  addEventListener('resize', hideAchvTip);
+
+  function hookAchvTip(node, a) {
+    node.addEventListener('pointerenter', () => showAchvTip(a, node));
+    node.addEventListener('pointerleave', hideAchvTip);
+    node.addEventListener('click', (e) => {           // touch: tap toggles
+      if ($achvTip.hidden) { showAchvTip(a, node); e.stopPropagation(); }
+      else hideAchvTip();
+    });
+  }
+
   function renderAchievements() {
     $achvList.replaceChildren();
     $sheetAchv.replaceChildren();
@@ -1133,7 +1191,7 @@
       row.append(ic);
       row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
       row.append(el('span', 'ap', blocked ? `⚠ ${prog}` : prog));
-      row.title = blocked ? note : `${cond} — ${note}`;
+      hookAchvTip(row, a);
       $achvList.append(row);
       $achvList.append(el('div', 'achv-note' + (blocked ? ' warn' : ''),
         blocked ? `⚠ ${note}` : `${cond} — ${note}`));
@@ -1141,7 +1199,7 @@
       // phone strip: icon only — green when satisfied, red when voided
       const sic = el('span', 'aic' + (met ? ' met' : '') + (blocked ? ' blk' : ''));
       sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
-      sic.title = `${a.name[lang] ?? a.name.ko} (${prog}) — ${blocked ? note : cond}`;
+      hookAchvTip(sic, a);
       $sheetAchv.append(sic);
     }
   }

@@ -1,4 +1,4 @@
-# KORD BREACH 모디파이어 시뮬레이터 <sub>v0.15</sub>
+# KORD BREACH 모디파이어 시뮬레이터 <sub>v0.16</sub>
 
 Escape from Tarkov · KORD BREACH 시즌 1의 모디파이어(특성 퍽) 39종을 한글로 번역하고,
 조합해서 통과 여부를 확인하는 페이지입니다. (1.1.0.0.46608 시즌 런칭 밸런스 반영)
@@ -123,7 +123,7 @@ python3 build_char.py
 
 ```sh
 cd docs
-./dev/verify.sh            # 헤드리스 Chrome, 데스크톱/폰 두 뷰포트에서 369개 어서션
+./dev/verify.sh            # 헤드리스 Chrome, 데스크톱/폰 두 뷰포트에서 374개 어서션
 ```
 
 `dev/shot.mjs`는 CDP로 브라우저를 몰아 스크린샷을 찍습니다. Chrome의 `--screenshot`

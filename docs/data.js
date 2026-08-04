@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.15';
+const APP_VERSION = '0.16';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -275,7 +275,7 @@ const ACHIEVEMENTS = [
   { id: 'born-entrepreneur',
     name: { ko: '천생 기업가', ja: '生まれながらの起業家', en: 'Born Entrepreneur' },
     cond: { all: [13] },
-    note: { ko: '+ 10억₽·1천만€·1천만$ 동시 보유', ja: '+ 10億₽・1千万€・1千万$同時所持', en: '+ hold 1B₽ / 10M€ / 10M$ at once' } },
+    note: { ko: '+ 5억₽·100만€·100만$ 동시 보유', ja: '+ 5億₽・100万€・100万$同時所持', en: '+ hold 500M₽ / 1M€ / 1M$ at once' } },
 ];
 
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in

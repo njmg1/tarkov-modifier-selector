@@ -386,6 +386,18 @@ window.addEventListener('load', async () => {
       'sheet achievement strip mirrors the panel');
   $('#resetBtn').click();
 
+  // Kappa Protocol VOIDS "hardcore at home" (the container is granted, never
+  // obtained) — the row must flip to a warning, not a checkmark
+  ['BROKEN SECURE CONTAINER','NO FLEA MARKET'].forEach(click);
+  chk(met('우리 집에는 하드코어가 있다'), 'hardcore-home met with BSC+NFM, no kappa');
+  click('KAPPA PROTOCOL');
+  chk(!met('우리 집에는 하드코어가 있다'), 'kappa protocol voids hardcore-home');
+  chk(achvRow('우리 집에는 하드코어가 있다').classList.contains('blk'), 'voided row flagged blk');
+  chk(/불가/.test(achvRow('우리 집에는 하드코어가 있다').querySelector('.ap').textContent),
+      'voided row says 불가');
+  chk(document.querySelectorAll('#sheetAchv .aic.blk').length === 1, 'sheet strip shows the void too');
+  $('#resetBtn').click();
+
   // ---- bottom sheet ----------------------------------------------------
   // There must be exactly one toolbar and one set of button ids, wherever it lives.
   chk(document.querySelectorAll('.tools').length === 1, 'exactly one .tools node');

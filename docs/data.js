@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.14';
+const APP_VERSION = '0.15';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -263,8 +263,11 @@ const ACHIEVEMENTS = [
     note: { ko: '정식 카파 획득으로도 달성 가능', ja: '正規のカッパ入手でも達成可', en: 'also earnable via the real Kappa' } },
   { id: 'hardcore-home',
     name: { ko: '우리 집에는 하드코어가 있다', ja: '我が家にはハードコアがある', en: 'We Have Hardcore at Home' },
-    cond: { all: [34, 35] },
-    note: { ko: '+ 보안 컨테이너 카파 획득', ja: '+ カッパコンテナ入手', en: '+ obtain container Kappa' } },
+    cond: { all: [34, 35], not: [23] },
+    note: { ko: '+ 카파를 직접 획득 (콜렉터)', ja: '+ カッパを自力入手（コレクター）', en: '+ obtain Kappa yourself (Collector)' },
+    warn: { ko: '카파 프로토콜 선택 시 달성 불가 — 시작부터 지급되면 \'획득\' 과정이 성립하지 않음',
+            ja: 'カッパプロトコル選択時は達成不可 — 最初から支給されると「入手」が成立しない',
+            en: 'Void with Kappa Protocol — a container granted at creation is never "obtained"' } },
   { id: 'call-that-challenge',
     name: { ko: '그걸 도전이라고?', ja: 'それが挑戦だって？', en: 'You Call That a Challenge?' },
     cond: { pool: [7, 12, 16, 18, 19, 20, 21, 37], n: 5 },
@@ -368,6 +371,7 @@ const STRINGS = {
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
   achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  achvBlocked:    { ko: '불가', ja: '不可', en: 'void' },
   achvCondNoPerks:{ ko: '긍정(퍽)을 하나도 선택하지 않기', ja: 'ポジティブ(パーク)を一つも選ばない', en: 'pick no positive modifiers' },
   achvCondNegMin: { ko: '부정(디버프) {n}개 이상 선택', ja: 'ネガティブ(デバフ)を{n}個以上選択', en: 'pick {n}+ negative modifiers' },
   achvCondNeed:   { ko: '필요: {list}', ja: '必要: {list}', en: 'requires: {list}' },

@@ -239,6 +239,10 @@
     -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
   }
   .achv-row.met .aic { background: var(--ok); opacity: 1; }
+  .achv-row.blk .aic { background: var(--bad); opacity: .9; }
+  .achv-row.blk .anm { color: var(--bad); text-decoration: line-through; }
+  .achv-row.blk .ap { color: var(--bad); }
+  .achv-note.warn { color: var(--bad); opacity: .85; }
   .achv-row .anm { font-size: 12px; color: var(--text-dim); min-width: 0; }
   .achv-row.met .anm { color: var(--text); }
   .achv-row .ap {
@@ -259,6 +263,7 @@
     -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
   }
   .sheet-achv .aic.met { background: var(--ok); opacity: 1; }
+  .sheet-achv .aic.blk { background: var(--bad); opacity: .9; }
 
   /* ------------------------------------------------------------ promo */
   .promo {
@@ -1080,6 +1085,10 @@
   function achvStatus(a) {
     const picked = SELECTABLE.filter(m => selected.has(m.id));
     const c = a.cond;
+    // a "voided by" modifier (e.g. Kappa Protocol hands out the container the
+    // achievement wants you to EARN) beats everything else
+    if (c.not && c.not.some(id => selected.has(id)))
+      return { met: false, blocked: true, prog: t('achvBlocked') };
     if (c.perksMax !== undefined) {
       const n = picked.filter(m => m.cat === 'positive').length;
       return { met: n <= c.perksMax, prog: n <= c.perksMax ? '✓' : t('achvPerkCount', { n }) };
@@ -1114,24 +1123,25 @@
     $achvList.replaceChildren();
     $sheetAchv.replaceChildren();
     for (const a of ACHIEVEMENTS) {
-      const { met, prog } = achvStatus(a);
+      const { met, blocked, prog } = achvStatus(a);
       const cond = achvCondText(a);
-      const note = a.note[lang] ?? a.note.ko;
+      const note = blocked ? (a.warn[lang] ?? a.warn.ko) : (a.note[lang] ?? a.note.ko);
 
-      const row = el('div', 'achv-row' + (met ? ' met' : ''));
+      const row = el('div', 'achv-row' + (met ? ' met' : '') + (blocked ? ' blk' : ''));
       const ic = el('span', 'aic');
       ic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
       row.append(ic);
       row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
-      row.append(el('span', 'ap', prog));
-      row.title = `${cond} — ${note}`;
+      row.append(el('span', 'ap', blocked ? `⚠ ${prog}` : prog));
+      row.title = blocked ? note : `${cond} — ${note}`;
       $achvList.append(row);
-      $achvList.append(el('div', 'achv-note', `${cond} — ${note}`));
+      $achvList.append(el('div', 'achv-note' + (blocked ? ' warn' : ''),
+        blocked ? `⚠ ${note}` : `${cond} — ${note}`));
 
-      // phone strip: icon only, lit when the modifier half is satisfied
-      const sic = el('span', 'aic' + (met ? ' met' : ''));
+      // phone strip: icon only — green when satisfied, red when voided
+      const sic = el('span', 'aic' + (met ? ' met' : '') + (blocked ? ' blk' : ''));
       sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
-      sic.title = `${a.name[lang] ?? a.name.ko} (${prog}) — ${cond}`;
+      sic.title = `${a.name[lang] ?? a.name.ko} (${prog}) — ${blocked ? note : cond}`;
       $sheetAchv.append(sic);
     }
   }

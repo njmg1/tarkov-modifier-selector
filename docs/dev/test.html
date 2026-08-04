@@ -371,6 +371,19 @@ window.addEventListener('load', async () => {
   ['HEMOPHILIA','OSTEOPOROSIS','POLYDIPSIA'].forEach(click);
   chk(achvRow('계획이 있었어').querySelector('.ap').textContent === '3/10', 'plan feat shows 3/10');
   chk(!met('계획이 있었어'), 'plan feat unmet at 3');
+  // every row carries a glyph icon and a requirement note naming the modifiers
+  chk([...document.querySelectorAll('#achvList .achv-row .aic')].length === ACHIEVEMENTS.length,
+      'every achievement row has an icon');
+  chk([...document.querySelectorAll('#achvList .achv-row .aic')]
+        .every(i => /^url\("data:image\/png/.test(i.style.getPropertyValue('--ic'))),
+      'achievement icons are data URIs');
+  const geneNote = [...document.querySelectorAll('#achvList .achv-note')]
+    .find(n => /혈우병/.test(n.textContent));
+  chk(!!geneNote && /골다공증.*알레르기/.test(geneNote.textContent),
+      'gene-lottery note lists its required modifiers');
+  // the phone sheet gets the same 8 as an icon strip
+  chk(document.querySelectorAll('#sheetAchv .aic').length === ACHIEVEMENTS.length,
+      'sheet achievement strip mirrors the panel');
   $('#resetBtn').click();
 
   // ---- bottom sheet ----------------------------------------------------

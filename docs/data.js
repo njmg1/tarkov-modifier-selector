@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.13';
+const APP_VERSION = '0.14';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -368,6 +368,10 @@ const STRINGS = {
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
   achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  achvCondNoPerks:{ ko: '긍정(퍽)을 하나도 선택하지 않기', ja: 'ポジティブ(パーク)を一つも選ばない', en: 'pick no positive modifiers' },
+  achvCondNegMin: { ko: '부정(디버프) {n}개 이상 선택', ja: 'ネガティブ(デバフ)を{n}個以上選択', en: 'pick {n}+ negative modifiers' },
+  achvCondNeed:   { ko: '필요: {list}', ja: '必要: {list}', en: 'requires: {list}' },
+  achvCondPool:   { ko: '다음 중 {n}개: {list}', ja: '次から{n}個: {list}', en: 'any {n} of: {list}' },
   achvPerkCount:  { ko: '퍽 {n}개', ja: 'パーク{n}個', en: '{n} perks' },
   toastSlotSaved: { ko: '저장됨 · {name}', ja: '保存しました · {name}', en: 'Saved · {name}' },
   toastSlotLoaded:{ ko: '{name} 불러옴', ja: '{name} を読み込みました', en: 'Loaded {name}' },

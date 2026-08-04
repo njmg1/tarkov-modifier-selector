@@ -233,9 +233,12 @@
     font: 700 10.5px/1 var(--mono); letter-spacing: .14em;
     color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;
   }
-  .achv-row { display: flex; align-items: baseline; gap: 7px; padding: 3.5px 0; }
-  .achv-row .st { flex: 0 0 auto; font: 700 11px/1 var(--mono); color: var(--text-dim); width: 13px; }
-  .achv-row.met .st { color: var(--ok); }
+  .achv-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+  .achv-row .aic {
+    flex: 0 0 auto; width: 16px; height: 16px; background: var(--text-dim); opacity: .55;
+    -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+  }
+  .achv-row.met .aic { background: var(--ok); opacity: 1; }
   .achv-row .anm { font-size: 12px; color: var(--text-dim); min-width: 0; }
   .achv-row.met .anm { color: var(--text); }
   .achv-row .ap {
@@ -244,8 +247,18 @@
     color: var(--text-dim);
   }
   .achv-row.met .ap { color: var(--ok); }
-  .achv-note { font-size: 10.5px; color: var(--text-dim); opacity: .75; margin: -2px 0 2px 20px; }
+  .achv-note { font-size: 10.5px; color: var(--text-dim); opacity: .75; margin: -2px 0 4px 24px; line-height: 1.45; }
   .achv-free { margin-top: 8px; font-size: 10.5px; color: var(--text-dim); opacity: .8; line-height: 1.5; }
+  /* phone: a compact achievement-icon strip at the top of the bottom sheet */
+  .sheet-achv {
+    display: flex; gap: 12px; align-items: center;
+    padding: 9px 14px; border-bottom: 1px solid var(--line);
+  }
+  .sheet-achv .aic {
+    width: 20px; height: 20px; background: var(--text-dim); opacity: .35;
+    -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+  }
+  .sheet-achv .aic.met { background: var(--ok); opacity: 1; }
 
   /* ------------------------------------------------------------ promo */
   .promo {
@@ -777,6 +790,7 @@
     <span class="sheet-arrow" id="sheetArrow" aria-hidden="true">▾</span>
   </button>
   <div class="sheet-body" id="sheetBody">
+    <div class="sheet-achv" id="sheetAchv"></div>
     <div class="picks" id="sheetPicks"></div>
     <div class="sheet-tools" id="sheetTools"></div>
   </div>
@@ -1082,18 +1096,43 @@
     return { met: n === c.all.length, prog: `${n}/${c.all.length}` };
   }
 
+  // THIRD LEG's display name carries a long quip in ko/ja — too long for the
+  // requirement lists here, so cut at the quote.
+  const shortName = (m) => nameFor(m).split(' "')[0].split('「')[0];
+
+  function achvCondText(a) {
+    const c = a.cond;
+    if (c.perksMax !== undefined) return t('achvCondNoPerks');
+    if (c.negMin !== undefined) return t('achvCondNegMin', { n: c.negMin });
+    const list = (c.pool ?? c.all).map(id => shortName(BY_ID.get(id))).join(' · ');
+    return c.pool ? t('achvCondPool', { n: c.n, list }) : t('achvCondNeed', { list });
+  }
+
+  const $sheetAchv = document.getElementById('sheetAchv');
+
   function renderAchievements() {
     $achvList.replaceChildren();
+    $sheetAchv.replaceChildren();
     for (const a of ACHIEVEMENTS) {
       const { met, prog } = achvStatus(a);
+      const cond = achvCondText(a);
+      const note = a.note[lang] ?? a.note.ko;
+
       const row = el('div', 'achv-row' + (met ? ' met' : ''));
-      row.append(el('span', 'st', met ? '✓' : '·'));
+      const ic = el('span', 'aic');
+      ic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
+      row.append(ic);
       row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
       row.append(el('span', 'ap', prog));
-      row.title = a.note[lang] ?? a.note.ko;
+      row.title = `${cond} — ${note}`;
       $achvList.append(row);
-      const note = el('div', 'achv-note', a.note[lang] ?? a.note.ko);
-      $achvList.append(note);
+      $achvList.append(el('div', 'achv-note', `${cond} — ${note}`));
+
+      // phone strip: icon only, lit when the modifier half is satisfied
+      const sic = el('span', 'aic' + (met ? ' met' : ''));
+      sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
+      sic.title = `${a.name[lang] ?? a.name.ko} (${prog}) — ${cond}`;
+      $sheetAchv.append(sic);
     }
   }
 

@@ -20,7 +20,7 @@
 // were completed by the translator rather than read off the image.
 
 // Bumped by hand. Shown in the header, the share image, and the footer.
-const APP_VERSION = '0.17';
+const APP_VERSION = '0.18';
 
 // `en` is the source game's own text (verbatim from the block images) and
 // also doubles as the English UI translation — it needed no separate pass.
@@ -285,10 +285,12 @@ const ACHIEVEMENTS = [
 const ACHV_BUILDS = [
   { id: 'kappa-run',
     name: { ko: '조합① 카파 만능', ja: '構成① カッパ万能', en: 'Build 1 — Kappa run' },
-    ids: [23, 13, 7, 18, 19, 20, 21, 28, 34, 35] },
+    ids: [23, 13, 7, 18, 19, 20, 21, 28, 34, 35],
+    fixed: [23, 13, 7, 18, 19, 20, 21] },   // kappa + street tax + the challenge 5
   { id: 'bare-run',
     name: { ko: '조합② 맨몸 하드코어', ja: '構成② 素手ハードコア', en: 'Build 2 — bare hardcore' },
-    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 28] },
+    ids: [24, 25, 29, 33, 36, 34, 35, 26, 27, 28],
+    fixed: [24, 25, 29, 33, 36, 34, 35] },  // gene-lottery 5 + BSC + no-flea
 ];
 
 // UI chrome strings, outside the 36 modifiers themselves. `t(key, vars)` in
@@ -384,6 +386,8 @@ const STRINGS = {
   slotNamePlaceholder: { ko: '이름 (비워두면 시각)', ja: '名前（空欄なら時刻）', en: 'Name (blank = time)' },
   achvTitle:      { ko: '획득 가능 업적', ja: '獲得可能な実績', en: 'Achievable feats' },
   achvFree:       { ko: '특성 무관: 신봉자 · 극비 · 사기꾼 · 원칙보다 이익', ja: '特性と無関係: 信奉者・極秘・詐欺師・原則より利益', en: 'Modifier-free: Believer · Top Secret · Trickster · Profit over Principle' },
+  tagFixed:       { ko: '고정', ja: '固定', en: 'FIXED' },
+  tagFree:        { ko: '자유', ja: '自由', en: 'FREE' },
   achvBuild1:     { ko: '조합①', ja: '構成①', en: 'Build 1' },
   achvBuild2:     { ko: '조합②', ja: '構成②', en: 'Build 2' },
   achvApplied:    { ko: '{name} 적용됨', ja: '{name} を適用しました', en: 'Applied {name}' },

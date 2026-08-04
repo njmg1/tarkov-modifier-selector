@@ -419,6 +419,21 @@ window.addEventListener('load', async () => {
       'build2 satisfies its 4 gated achievements');
   chk(document.querySelectorAll('#sheetAchv .achv-build').length === 2, 'sheet strip carries both build buttons');
 
+  // applying a build paints 고정/자유 corner badges on the selected cards
+  $('#achvBuild1').click();
+  const btag = n => cardByName(n).querySelector('.btag');
+  chk(btag('KAPPA PROTOCOL')?.textContent === '고정' && btag('KAPPA PROTOCOL').classList.contains('fix'),
+      'kappa tagged 고정 in build1');
+  chk(btag('INCOMPETENT')?.textContent === '자유' && btag('INCOMPETENT').classList.contains('fr'),
+      'incompetent tagged 자유 in build1');
+  chk(!cardByName('DIET').querySelector('.btag.fix') && !cardByName('DIET').querySelector('.btag.fr'),
+      'unselected card carries no visible tag');
+  $('#achvBuild2').click();
+  chk(btag('HEMOPHILIA')?.textContent === '고정', 'hemophilia tagged 고정 in build2');
+  chk(btag('EXHAUSTION')?.textContent === '자유', 'exhaustion tagged 자유 in build2');
+  $('#resetBtn').click();
+  chk(document.querySelectorAll('.btag.fix, .btag.fr').length === 0, 'reset clears all tags');
+
   $('#resetBtn').click();
   {
     const row2 = achvRow('유전자 복권');

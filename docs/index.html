@@ -397,6 +397,15 @@
     transition: background .14s, border-color .14s, transform .08s;
     position: relative; overflow: hidden;
   }
+  .card .btag {
+    position: absolute; right: 0; bottom: 0; z-index: 2;
+    font: 700 10px/1 var(--mono); letter-spacing: .08em;
+    padding: 4px 9px 5px; border-radius: 6px 0 3px 0;
+    display: none; pointer-events: none;
+  }
+  .card .btag.fix { display: block; background: var(--ok); color: #10140d; }
+  .card .btag.fr  { display: block; background: transparent; color: var(--text-dim);
+                    border: 1px dashed var(--text-dim); border-right: 0; border-bottom: 0; }
   .card::after {  /* selected accent stripe */
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
     background: transparent; transition: background .14s;
@@ -1180,10 +1189,19 @@
   }
   const hideAchvTip = () => { $achvTip.hidden = true; };
 
-  // one-tap example builds (the two verified roadmap characters)
+  // one-tap example builds (the two verified roadmap characters).
+  // buildTags marks each pick as achievement-required ('fix') or filler
+  // ('fr'); render() paints them as corner badges on the selected cards.
+  // Cleared whenever the selection is replaced wholesale (reset / random /
+  // slot load) — manual single toggles just add untagged cards.
+  const buildTags = new Map();
   function applyAchvBuild(b) {
     selected.clear();
-    dropConflicts(new Set(b.ids)).forEach(id => selected.add(id));
+    buildTags.clear();
+    dropConflicts(new Set(b.ids)).forEach(id => {
+      selected.add(id);
+      buildTags.set(id, b.fixed.includes(id) ? 'fix' : 'fr');
+    });
     save();
     render();
     hideAchvTip();
@@ -1298,6 +1316,17 @@
       const on = selected.has(m.id);
       node.classList.toggle('on', on);
       node.setAttribute('aria-pressed', String(on));
+
+      // fixed/free corner badge — only while an example build's tags are live
+      let btag = node.querySelector('.btag');
+      const tag = on ? buildTags.get(m.id) : null;
+      if (tag) {
+        if (!btag) { btag = el('span', 'btag'); node.append(btag); }
+        btag.className = 'btag ' + tag;
+        btag.textContent = t(tag === 'fix' ? 'tagFixed' : 'tagFree');
+      } else if (btag) {
+        btag.className = 'btag';
+      }
 
       const blocker = on ? null : blockerOf(m);
       node.classList.toggle('blocked', !!blocker);
@@ -1737,6 +1766,7 @@
 
   document.getElementById('resetBtn').addEventListener('click', () => {
     selected.clear();
+    buildTags.clear();
     save();
     render();
     toast(t('toastReset'));
@@ -1877,6 +1907,7 @@
 
   document.getElementById('randomBtn').addEventListener('click', () => {
     selected.clear();
+    buildTags.clear();
     rollRandomBuild().forEach(id => selected.add(id));
     save();
     render();
@@ -1979,6 +2010,7 @@
     const s = decode(slot.code);
     if (!s) return;
     selected.clear();
+    buildTags.clear();
     dropConflicts(s).forEach(id => selected.add(id));   // same guard as load()
     save();
     render();
@@ -2092,6 +2124,7 @@
     const s = code && decode(code);
     if (!s) return;
     selected.clear();
+    buildTags.clear();
     dropConflicts(s).forEach(id => selected.add(id));   // same guard as load()
     render();
   });

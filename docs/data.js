@@ -289,7 +289,7 @@ const ACHIEVEMENTS = [
 // One-tap example builds for the achievement roadmap: the two verified
 // minimal-plan characters. Fixed picks only ARE part of the plan; the filler
 // (debuffs on build 1, the 3 extra debuffs on build 2) matches the examples
-// in the roadmap doc/slides so the sums land on +1 / +44.
+// in the roadmap doc/slides so the sums land on 0 / +32.
 const ACHV_BUILDS = [
   { id: 'kappa-run',
     name: { ko: '조합① 카파 만능', ja: '構成① カッパ万能', en: 'Build 1 — Kappa run' },

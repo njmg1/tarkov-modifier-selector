@@ -487,10 +487,16 @@
     margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e6eaf1;
     white-space: nowrap;
   }
-  /* the official English name, shown next to the Korean one */
-  .en-name {
+  /* the title carries both names: h3 holds the active language's, .alt-name
+     the other one. Latin gets the mono/UN-blue treatment; Hangul does not —
+     the mono stack has no Korean face and letter-spacing mangles it. */
+  .alt-name {
+    font: 400 11px/1.3 var(--sans); color: var(--text-dim);
+    white-space: nowrap;
+  }
+  body.lang-ko .alt-name {
     font: 600 10.5px/1.3 var(--mono); letter-spacing: .09em;
-    color: var(--un-hi); white-space: nowrap; opacity: .9;
+    color: var(--un-hi); opacity: .9;
   }
   .val {
     font: 700 13px/1 var(--mono); font-variant-numeric: tabular-nums;
@@ -515,7 +521,7 @@
     .icon { width: 44px; height: 44px; }
     .title { margin-bottom: 4px; }
     .val { position: absolute; top: 13px; right: 12px; margin: 0; padding: 0; }
-    .en-name { white-space: normal; }
+    .alt-name { white-space: normal; }
   }
   .ko .trunc {
     color: var(--warn); cursor: help; font-weight: 600;
@@ -740,6 +746,11 @@
       <button class="tool" id="shotBtn">이미지 저장</button>
       <button class="tool" id="shareBtn">링크 복사</button>
       <button class="tool" id="resetBtn">초기화</button>
+
+      <div class="lang-group" role="group" aria-label="Language">
+        <button class="lang-btn" data-lang="ko" aria-pressed="true">한국어</button>
+        <button class="lang-btn" data-lang="en" aria-pressed="false">English</button>
+      </div>
     </div>
   </div>
 </header>
@@ -783,7 +794,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.81-5.96 6.81H1.69l7.73-8.84L1.27 2.25h6.82l4.71 6.23 5.44-6.23zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64z"/></svg>
           X (Twitter)
         </a>
-        <a class="foot-link" href="../" title="시즌 1 셀렉터로 이동">시즌 1 (KORD BREACH)</a>
+        <a class="foot-link" href="../" id="seasonSwitch">시즌 1 (KORD BREACH)</a>
       </div>
     </div>
   </div>
@@ -917,7 +928,9 @@
   const BY_ID = new Map(MODIFIERS.map(m => [m.id, m]));
 
   // ---------------------------------------------------------------- language
-  const LANGS = ['ko'];   // season 2 source material is Korean-only
+  // Korean comes from the community card sheet, English from BSG's own
+  // announcement image. There is no Japanese source for season 2.
+  const LANGS = ['ko', 'en'];
   const LANG_KEY = 'untar-control-lang';
   let lang = 'ko';
   try {
@@ -932,10 +945,9 @@
     if (vars) for (const k in vars) s = s.split(`{${k}}`).join(vars[k]);
     return s;
   }
-  // The game's own English title (m.name) always doubles as the English
-  // translation, so 'en' has no separate name field the way ko/ja do.
-  const nameFor = (m) => m.koName;
-  const bodyOf = (m) => m.ko;
+  const nameFor = (m) => (lang === 'en' ? m.enName : m.koName);
+  const altName = (m) => (lang === 'en' ? m.koName : m.enName);
+  const bodyOf = (m) => (lang === 'en' ? m.en : m.ko);
   const axisFor = (axis) => axis[lang] ?? axis.ko;
 
   // id -> [{ other: modifier, kind, axis }, ...]
@@ -1033,20 +1045,18 @@
 
     const body = el('div', 'body');
     const title = el('div', 'title');
-    const h3 = el('h3', null, m.koName);
-    if (m.koGuess) {
-      const mark = el('span', 'trunc', ' ◆');
-      mark.title = '효과와 영문 명칭은 공식 자료로 확인됐지만, 커뮤니티 자료에서 한글 제목의 첫 글자가 아이콘에 가려져 한글 표기만 추정입니다.';
-      h3.append(mark);
-    }
-    title.append(h3, el('span', 'en-name', m.enName));
+    const h3 = el('h3');
+    const alt = el('span', 'alt-name');
+    node._h3 = h3;
+    node._alt = alt;
+    title.append(h3, alt);
     if (m.value !== null) title.append(el('span', 'val', fmt(m.value)));
     body.append(title);
 
-    // Only the title carries the English name — the card is too narrow to
-    // run BSG's English wording under every description line as well.
+    // Only one language's description is on the card at a time — it is too
+    // narrow to run both, so the switch swaps the text instead of stacking it.
     const ul = el('ul', 'desc');
-    m.ko.forEach(line => ul.append(el('li', null, line)));
+    node._ul = ul;
     body.append(ul);
 
     node.append(body);
@@ -1062,11 +1072,33 @@
 
   const BLOCK_KEY = { official: 'veilOfficial', inferred: 'veilInferred' };
 
+  // The ◆ flags an inferred KOREAN spelling, so it rides on whichever element
+  // is currently showing the Korean name — the h3 in ko, the chip in en.
+  const GUESS_NOTE = {
+    ko: '효과와 영문 명칭은 공식 자료로 확인됐지만, 커뮤니티 자료에서 한글 제목의 첫 글자가 아이콘에 가려져 한글 표기만 추정입니다.',
+    en: "The effect and the English name are confirmed; only the Korean spelling is a guess, because the first syllable of the title is hidden behind the icon in the community sheet.",
+  };
+  function applyCardLang() {
+    for (const m of MODIFIERS) {
+      const node = cards.get(m.id);
+      if (!node) continue;
+      node._h3.textContent = nameFor(m);
+      node._alt.textContent = altName(m);
+      if (m.koGuess) {
+        const mark = el('span', 'trunc', ' ◆');
+        mark.title = GUESS_NOTE[lang] ?? GUESS_NOTE.ko;
+        (lang === 'en' ? node._alt : node._h3).append(mark);
+      }
+      node._ul.replaceChildren(...bodyOf(m).map(line => el('li', null, line)));
+    }
+  }
+
   for (const c of CATS) {
     const grid = document.getElementById(`grid-${c}`);
     BY_CAT[c].forEach(m => grid.append(buildCard(m)));
     grid.append(Object.assign(el('div', 'empty'), { hidden: true }));
   }
+  applyCardLang();
 
   // ---------------------------------------------------------------- aside
   const $picks = document.getElementById('picks');
@@ -1330,8 +1362,8 @@
         msg.append(el('small', null, `${nameFor(blocker.other)} · ${axisFor(blocker.axis)}`));
         node.title = t('veilTitle', { name: nameFor(blocker.other) });
       } else {
-        node.title = `${m.koName} / ${m.enName}\n`
-          + m.ko.map(l => '· ' + l).join('\n');
+        node.title = `${nameFor(m)} / ${altName(m)}\n`
+          + bodyOf(m).map(l => '· ' + l).join('\n');
       }
 
       // a perk is "unaffordable" if taking it would push you below zero
@@ -1523,11 +1555,11 @@
         c.fillStyle = '#e6eaf1';
         c.font = `600 14px ${SANS}`;
         c.fillText(nameFor(m), TEXT_X, top + 14);
-        // official English name, trailing the Korean title on the same line
+        // the other language's name, trailing the title on the same line
         const nw = c.measureText(nameFor(m)).width;
         c.fillStyle = cssVar('--un-hi');
-        c.font = `600 10.5px ${MONO}`;
-        c.fillText(m.enName, TEXT_X + nw + 8, top + 15);
+        c.font = lang === 'en' ? `400 11px ${SANS}` : `600 10.5px ${MONO}`;
+        c.fillText(altName(m), TEXT_X + nw + 8, top + 15);
 
         c.fillStyle = cssVar('--text-dim');
         c.font = `400 12px ${SANS}`;
@@ -1706,6 +1738,7 @@
     saveAskTitle: 'saveAskTitle', saveAskMsg: 'saveAskMsg', saveAskPick: 'saveAskPick',
     askImgOnly: 'askImgOnly', askSaveImg: 'askSaveImg',
     rulesNote: 'rulesNote', exclNote: 'exclNote', enNote: 'enNote', valuesNote: 'valuesNote',
+    seasonSwitch: 'seasonSwitch',
   };
 
   function applyStaticText() {
@@ -1731,18 +1764,19 @@
     lang = next;
     try { localStorage.setItem(LANG_KEY, lang); } catch { /* file:// */ }
     document.documentElement.lang = lang;
-    document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+    document.body.classList.remove('lang-ko', 'lang-en');
     document.body.classList.add(`lang-${lang}`);
     for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
     applyStaticText();
+    applyCardLang();
     render();
   }
   for (const b of $langBtns) b.addEventListener('click', () => setLang(b.dataset.lang));
   // sync the DOM to whatever `lang` resolved to at startup (localStorage or
   // the 'ko' default) — the markup is hardcoded to lang-ko, which is wrong
-  // whenever a returning visitor had picked ja/en last time
+  // whenever a returning visitor had picked English last time
   document.documentElement.lang = lang;
-  document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+  document.body.classList.remove('lang-ko', 'lang-en');
   document.body.classList.add(`lang-${lang}`);
   for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
   applyStaticText();

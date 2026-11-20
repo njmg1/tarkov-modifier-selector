@@ -508,14 +508,6 @@
   ul.desc li::before {
     content: "·"; position: absolute; left: 2px; color: var(--text-faint);
   }
-  ul.desc li + li { margin-top: 4px; }
-  /* English original, under its Korean line */
-  ul.desc .en-l {
-    /* subordinate to the Korean line, but still the authoritative wording:
-       --text-faint only reaches 2.7:1 on the panel, too low to read at 11px */
-    display: block; margin-top: 1px;
-    font: 400 11px/1.4 var(--sans); color: #6e7888;
-  }
 
   @media (max-width: 620px) {
     /* a wrapping title used to drag the value off the top-right corner */
@@ -1051,13 +1043,10 @@
     if (m.value !== null) title.append(el('span', 'val', fmt(m.value)));
     body.append(title);
 
+    // Only the title carries the English name — the card is too narrow to
+    // run BSG's English wording under every description line as well.
     const ul = el('ul', 'desc');
-    m.ko.forEach((line, i) => {
-      const li = el('li', null, line);
-      // the Korean sheet is a translation, so keep BSG's wording beside it
-      if (m.en[i]) li.append(el('span', 'en-l', m.en[i]));
-      ul.append(li);
-    });
+    m.ko.forEach(line => ul.append(el('li', null, line)));
     body.append(ul);
 
     node.append(body);
@@ -1342,7 +1331,7 @@
         node.title = t('veilTitle', { name: nameFor(blocker.other) });
       } else {
         node.title = `${m.koName} / ${m.enName}\n`
-          + m.ko.map((l, i) => '· ' + l + (m.en[i] ? `\n  ${m.en[i]}` : '')).join('\n');
+          + m.ko.map(l => '· ' + l).join('\n');
       }
 
       // a perk is "unaffordable" if taking it would push you below zero

@@ -379,7 +379,7 @@ const STRINGS = {
   rulesNote:       { ko: '합계 규칙은 시즌 1 기준을 그대로 적용했습니다 — 시즌 2 자료에는 점수 한도가 적혀 있지 않습니다.' },
   valuesNote:      { ko: '※ 밸런스 조정을 위해 시즌 시작 전 특성 수치가 변경될 수 있습니다.' },
   exclNote:        { ko: '동시 선택 불가 쌍은 공식 목록이 아니라 효과 설명에서 추정한 것입니다.' },
-  enNote:          { ko: '카드의 영문은 BSG 공식 영문 안내문 그대로입니다. 한글은 커뮤니티 번역본이라 표현이 조금씩 다를 수 있습니다.' },
+  enNote:          { ko: '특성 이름 옆의 영문은 BSG 공식 영문 안내문 표기입니다. 설명은 커뮤니티 번역본이라 원문과 표현이 조금씩 다를 수 있습니다.' },
   seasonSwitch:    { ko: '시즌 1 (KORD BREACH)' },
   // Kept even though the achievement panel is hidden: t() would throw if a
   // season-2 achievement list is dropped in before these are added back.

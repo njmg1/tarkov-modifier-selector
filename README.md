@@ -5,6 +5,8 @@ Escape from Tarkov · KORD BREACH 시즌 1의 모디파이어(특성 퍽) 39종�
 
 **https://njmg1.github.io/tarkov-modifier-selector/**
 
+> 시즌 2(UNTAR CONTROL) 시뮬레이터는 여기 있습니다 — **https://njmg1.github.io/tarkov-modifier-selector/season2/** (`docs/season2/`)
+
 > 공식 한글화 번역이 아닙니다. 수치는 시즌 시작 전 변경될 수 있습니다.
 
 ## 규칙

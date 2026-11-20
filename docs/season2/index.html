@@ -1,0 +1,2124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNTAR CONTROL 모디파이어 시뮬레이터 — 노잼망겜</title>
+<meta name="description" content="Escape from Tarkov · UNTAR CONTROL 시즌 2 모디파이어(특성 퍽) 62종 조합 시뮬레이터. 디버프로 포인트를 벌어 퍽에 씁니다.">
+
+<!-- Link previews need absolute URLs, so these are pinned to the Pages origin. -->
+<link rel="canonical" href="https://njmg1.github.io/tarkov-modifier-selector/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="노잼망겜">
+<meta property="og:url" content="https://njmg1.github.io/tarkov-modifier-selector/season2/">
+<meta property="og:title" content="UNTAR CONTROL 모디파이어 시뮬레이터">
+<meta property="og:description" content="시즌 2 모디파이어 62종 · 디버프로 포인트를 벌어 퍽에 쓰고, 합계 0 이상이면 통과.">
+<meta property="og:image" content="https://njmg1.github.io/tarkov-modifier-selector/season2/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@NoJamMangGameTV">
+<meta name="twitter:image" content="https://njmg1.github.io/tarkov-modifier-selector/season2/assets/og.png">
+<style>
+  :root {
+    --bg:          #0c0e0d;
+    --panel:       #161918;
+    --panel-2:     #1d211f;
+    --line:        #2b302e;
+    --line-hi:     #414744;
+    --text:        #d6dbd8;
+    --text-dim:    #7e8683;
+    --text-faint:  #565d5a;
+
+    --pos:         #a9c46c;
+    --pos-bg:      rgba(120, 152, 66, .10);
+    --pos-line:    #3a462a;
+    --pos-line-hi: #6e8a44;
+
+    --neg:         #d98b81;
+    --neg-bg:      rgba(150, 62, 55, .10);
+    --neg-line:    #4a302d;
+    --neg-line-hi: #8e4a43;
+
+    --ok:          #79cf8a;
+    --bad:         #e2584c;
+    --warn:        #d8b45f;
+
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+            "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 400 15px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 6rem;
+  }
+  /* faint diagonal hatch, echoing the in-game plate */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(255,255,255,.014) 0 1px, transparent 1px 4px);
+  }
+  .wrap {
+    position: relative; z-index: 1; max-width: 1500px; margin: 0 auto; padding: 0 20px;
+    display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 28px; align-items: start;
+  }
+  @media (max-width: 1080px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+
+  /* ------------------------------------------------------------ header */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: linear-gradient(var(--bg) 72%, rgba(12,14,13,.86));
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .head-in {
+    max-width: 1500px; margin: 0 auto; padding: 14px 20px;
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand b {
+    font: 700 20px/1 var(--sans); letter-spacing: .16em; color: #eef2ef;
+  }
+  .brand b span { color: var(--text-faint); }
+  .brand small { font-size: 10px; letter-spacing: .3em; color: var(--text-faint); }
+  .brand small i {
+    font: 500 10px/1 var(--mono); font-style: normal; letter-spacing: .04em;
+    color: var(--text-dim); margin-left: 4px;
+  }
+
+  /* ------------------------------------------------------------ meter */
+  .meter { flex: 1 1 380px; min-width: 300px; }
+  .meter-top {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px;
+    font: 500 12px/1 var(--sans); letter-spacing: .06em; color: var(--text-dim);
+  }
+  .balance {
+    font: 700 26px/1 var(--mono); letter-spacing: -.02em;
+    color: var(--ok); font-variant-numeric: tabular-nums;
+    transition: color .18s;
+  }
+  .balance.bad { color: var(--bad); }
+  .meter-top .sep { color: var(--text-faint); }
+  #meterDetail { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .bar {
+    position: relative; height: 8px; border-radius: 4px;
+    background: var(--panel-2); border: 1px solid var(--line); overflow: hidden;
+  }
+  .bar i {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, #5f8a44, var(--pos-line-hi));
+    transition: width .22s cubic-bezier(.4,0,.2,1), background .18s;
+  }
+  .bar.over i { background: linear-gradient(90deg, #8e4a43, var(--bad)); }
+
+  .verdict {
+    flex: 0 0 auto; align-self: center;
+    padding: 9px 18px; border-radius: 3px;
+    font: 700 13px/1 var(--sans); letter-spacing: .16em;
+    border: 1px solid; white-space: nowrap;
+  }
+  .verdict.ok  { color: var(--ok);  border-color: #2f5c3a; background: rgba(60,140,80,.12); }
+  .verdict.bad { color: var(--bad); border-color: #6b2b25; background: rgba(190,60,50,.12); }
+
+  /* ------------------------------------------------------------ controls */
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button.tool {
+    font: 500 12px/1 var(--sans); letter-spacing: .04em;
+    color: var(--text-dim); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 3px;
+    padding: 8px 12px; cursor: pointer; transition: .14s;
+  }
+  button.tool:hover { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
+  button.tool:active { transform: translateY(1px); }
+  button.tool[aria-pressed="true"] { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
+  button.tool:focus-visible, .card:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+
+  /* ------------------------------------------------------------ aside */
+  aside {
+    position: sticky; top: 96px; margin-top: 40px;
+    max-height: calc(100vh - 116px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+  }
+  @media (max-width: 1080px) {
+    aside { position: static; max-height: none; }
+    /* stacked above the content on phones — don't make people scroll past an
+       empty panel to reach the modifiers */
+    aside:has(.picks-empty) { display: none; }
+  }
+
+  .aside-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 14px; border-bottom: 1px solid var(--line);
+  }
+  .aside-head h2 {
+    margin: 0; font: 600 11px/1 var(--sans); letter-spacing: .22em; color: var(--text-dim);
+  }
+  .aside-head .count {
+    margin-left: auto; font: 500 11px/1 var(--mono); color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .picks { flex: 1; overflow-y: auto; padding: 6px; }
+  .picks-group + .picks-group { margin-top: 6px; }
+  .picks-group h3 {
+    margin: 0; padding: 8px 8px 6px;
+    font: 600 10px/1 var(--sans); letter-spacing: .18em; color: var(--text-faint);
+  }
+
+  .pick {
+    display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 9px;
+    width: 100%; padding: 7px 8px; border: 0; border-radius: 2px;
+    background: transparent; color: inherit; font: inherit; text-align: left;
+    cursor: pointer; transition: background .12s;
+  }
+  .pick:hover { background: var(--panel-2); }
+  .pick:focus-visible { outline: 2px solid #6e8a44; outline-offset: -2px; }
+  .pick .icon { grid-area: 1 / 1; width: 20px; height: 20px; }
+  .pick .nm {
+    grid-area: 1 / 2;
+    font-size: 12px; letter-spacing: .03em; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* .v and .x share the last cell — both need explicit placement, or the
+     auto-placer skips the occupied cell and wraps .v onto a second row. */
+  .pick .v {
+    grid-area: 1 / 3; justify-self: end;
+    font: 700 11px/1 var(--mono); font-variant-numeric: tabular-nums;
+  }
+  .pick .x {
+    grid-area: 1 / 3; justify-self: end;
+    font: 700 13px/1 var(--sans); color: var(--text-dim); visibility: hidden;
+  }
+  .pick.positive .v { color: var(--pos); }
+  .pick.negative .v { color: var(--neg); }
+  .pick.positive .icon { background-color: var(--pos); }
+  .pick.negative .icon { background-color: var(--neg); }
+  /* the value swaps to a × on hover — the row is a remove button */
+  .pick:hover .v { visibility: hidden; }
+  .pick:hover .x { visibility: visible; }
+
+  .picks-empty {
+    padding: 22px 12px; text-align: center; color: var(--text-faint);
+    font-size: 12px; line-height: 1.6; white-space: pre-line;
+  }
+
+  .aside-foot {
+    border-top: 1px solid var(--line); padding: 11px 14px;
+    display: grid; gap: 5px;
+    font: 500 12px/1 var(--sans); color: var(--text-dim);
+  }
+  .aside-foot div { display: flex; justify-content: space-between; align-items: baseline; }
+  .aside-foot span:last-child { font: 600 12px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .aside-foot .gain span:last-child { color: var(--neg); }
+  .aside-foot .cost span:last-child { color: var(--pos); }
+  .aside-foot .left {
+    margin-top: 3px; padding-top: 8px; border-top: 1px dashed var(--line);
+    color: var(--text);
+  }
+  .aside-foot .left span:last-child { font-size: 15px; color: var(--ok); }
+  .aside-foot .left.bad span:last-child { color: var(--bad); }
+  /* --------------------------------------------------- aside achievements */
+  .achv {
+    border-top: 1px solid var(--line);
+    padding: 10px 12px 12px;
+  }
+  .achv-head2 { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .achv h3 {
+    font: 700 10.5px/1 var(--mono); letter-spacing: .14em;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-right: auto;
+  }
+  .achv-build {
+    font: 600 10px/1 var(--mono); color: var(--text-dim);
+    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    border-radius: 4px; padding: 5px 8px; cursor: pointer;
+  }
+  .achv-build:hover { color: var(--text); border-color: var(--text-dim); }
+  .sheet-achv .achv-build { margin-left: auto; }
+  .sheet-achv .achv-build + .achv-build { margin-left: 0; }
+  .achv-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+  .achv-row .aic {
+    flex: 0 0 auto; width: 16px; height: 16px; background: var(--text-dim); opacity: .55;
+    -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+  }
+  .achv-row.met .aic { background: var(--ok); opacity: 1; }
+  .achv-row.wrn .aic { background: #d9a33c; opacity: .95; }
+  .achv-row.wrn .ap { color: #d9a33c; }
+  .achv-note.warn { color: #d9a33c; opacity: .9; }
+  .achv-row .anm { font-size: 12px; color: var(--text-dim); min-width: 0; }
+  .achv-row.met .anm { color: var(--text); }
+  .achv-row .ap {
+    margin-left: auto; flex: 0 0 auto;
+    font: 600 10.5px/1 var(--mono); font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+  }
+  .achv-row.met .ap { color: var(--ok); }
+  .achv-note { font-size: 10.5px; color: var(--text-dim); opacity: .75; margin: -2px 0 4px 24px; line-height: 1.45; }
+  .achv-free { margin-top: 8px; font-size: 10.5px; color: var(--text-dim); opacity: .8; line-height: 1.5; }
+  /* phone: a compact achievement-icon strip at the top of the bottom sheet */
+  .sheet-achv {
+    display: flex; gap: 12px; align-items: center;
+    padding: 9px 14px; border-bottom: 1px solid var(--line);
+  }
+  .sheet-achv .aic {
+    width: 20px; height: 20px; background: var(--text-dim); opacity: .35;
+    -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat;
+  }
+  .sheet-achv .aic.met { background: var(--ok); opacity: 1; }
+  .sheet-achv .aic.wrn { background: #d9a33c; opacity: .95; }
+  /* rich hover card for achievements (rows + phone strip icons) */
+  .achv-tip {
+    position: fixed; z-index: 90; max-width: 360px;
+    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.5);
+    pointer-events: none;
+  }
+  .achv-tip .t-name { font-size: 13.5px; font-weight: 700; }
+  .achv-tip .t-status { font: 600 11px/1 var(--mono); margin-top: 6px; }
+  .achv-tip .t-status.ok { color: var(--ok); }
+  .achv-tip .t-status.no { color: var(--text-dim); }
+  .achv-tip .t-status.bad { color: var(--bad); }
+  .achv-tip .t-cond { font-size: 12px; color: var(--text); margin-top: 8px; line-height: 1.55; }
+  .achv-tip .t-note { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+  .achv-tip .t-note.warn { color: var(--bad); }
+
+  /* ------------------------------------------------------------ promo */
+  .promo {
+    position: relative; overflow: hidden;
+    margin-top: 40px; border: 1px solid var(--line); border-radius: 3px;
+    background: #14181a;
+    display: flex; align-items: flex-end; gap: 20px; padding-right: 20px;
+  }
+  .promo::before {  /* same hatch as the in-game plate */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(255,255,255,.02) 0 1px, transparent 1px 5px);
+  }
+  .promo-char {
+    flex: 0 0 auto; height: 150px; width: auto; display: block;
+    margin-bottom: -1px; image-rendering: -webkit-optimize-contrast;
+  }
+  .promo-body { position: relative; padding: 18px 0 18px; min-width: 0; }
+  .promo-kicker {
+    font: 500 12px/1.4 var(--sans); letter-spacing: .04em; color: var(--text-dim);
+  }
+  .promo-name {
+    margin: 5px 0 3px;
+    font: 700 21px/1.2 var(--sans); letter-spacing: .02em; color: #eef2ef;
+  }
+  .promo-name span {
+    font: 500 12px/1 var(--mono); letter-spacing: .06em; color: var(--text-faint);
+    margin-left: 9px;
+  }
+  .promo-note { font-size: 11px; color: var(--text-faint); margin-bottom: 11px; }
+  .promo-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .promo-links a {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 13px; border-radius: 3px; text-decoration: none;
+    font: 600 12px/1 var(--sans); letter-spacing: .04em;
+    border: 1px solid var(--line-hi); color: var(--text);
+    background: var(--panel); transition: .14s;
+  }
+  .promo-links a:hover { background: var(--panel-2); border-color: #5c6360; }
+  .promo-links a:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  .promo-links svg { width: 15px; height: 15px; fill: currentColor; flex: 0 0 auto; }
+  .promo-links .yt:hover { border-color: #d0483c; color: #ef6a5e; }
+
+  /* language selector — sits in the same row as the social buttons, with a
+     divider so it doesn't read as a third social link */
+  .lang-group {
+    display: flex; gap: 6px; align-items: center; margin-left: 4px; padding-left: 10px;
+    border-left: 1px solid var(--line);
+  }
+  .lang-btn {
+    padding: 7px 11px; border-radius: 3px; font: 600 12px/1 var(--sans);
+    color: var(--text-dim); background: var(--panel); border: 1px solid var(--line-hi);
+    cursor: pointer; transition: .14s;
+  }
+  .lang-btn:hover { color: var(--text); background: var(--panel-2); }
+  .lang-btn[aria-pressed="true"] {
+    color: var(--pos); border-color: var(--pos-line-hi); background: rgba(120,152,66,.14);
+  }
+  .lang-btn:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  @media (max-width: 480px) {
+    .lang-group { margin-left: 0; padding-left: 0; border-left: 0; flex-basis: 100%; }
+  }
+
+  @media (max-width: 620px) {
+    .promo { flex-direction: column; align-items: stretch; gap: 0; padding: 0 18px 18px; }
+    .promo-char { height: 128px; align-self: flex-start; margin: 8px 0 -1px -8px; }
+    .promo-body { padding-top: 4px; }
+  }
+
+  /* ------------------------------------------------------------ sections */
+  section { margin-top: 40px; }
+  .sec-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  }
+  .sec-head h2 {
+    margin: 0; font: 600 12px/1 var(--sans); letter-spacing: .28em; color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .sec-head .sec-ko {
+    font: 500 12px/1 var(--sans); color: var(--text-faint); white-space: nowrap;
+  }
+  .sec-head .rule { flex: 1; height: 1px; background: var(--line); }
+  .sec-head .tally {
+    font: 500 12px/1 var(--mono); color: var(--text-faint); font-variant-numeric: tabular-nums;
+  }
+
+  /* the aside eats 292px, so let the columns find their own count */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+  @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+
+  @media (max-width: 620px) {
+    /* the rule + tally can't share a line with the heading at this width */
+    .sec-head { flex-wrap: wrap; gap: 5px 10px; }
+    .sec-head .rule { display: none; }
+    .sec-head .tally { flex: 1 0 100%; }
+  }
+
+  /* ------------------------------------------------------------ card */
+  .card {
+    display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px;
+    width: 100%; text-align: left; min-height: 92px;
+    padding: 12px 14px 12px 8px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 3px;
+    color: inherit; font: inherit; cursor: pointer;
+    transition: background .14s, border-color .14s, transform .08s;
+    position: relative; overflow: hidden;
+  }
+  .card .btag {
+    position: absolute; right: 0; bottom: 0; z-index: 2;
+    font: 700 10px/1 var(--mono); letter-spacing: .08em;
+    padding: 4px 9px 5px; border-radius: 6px 0 3px 0;
+    display: none; pointer-events: none;
+  }
+  .card .btag.fix { display: block; background: var(--ok); color: #10140d; }
+  .card .btag.fr  { display: block; background: transparent; color: var(--text-dim);
+                    border: 1px dashed var(--text-dim); border-right: 0; border-bottom: 0; }
+  .card::after {  /* selected accent stripe */
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: transparent; transition: background .14s;
+  }
+  .card:hover { border-color: var(--line-hi); }
+  .card:active { transform: translateY(1px); }
+
+  .card.global { cursor: default; opacity: .85; }
+  .card.global:hover { border-color: var(--line); }
+  .card.global:active { transform: none; }
+
+  .card.positive { background: var(--pos-bg); border-color: var(--pos-line); }
+  .card.positive:hover { border-color: var(--pos-line-hi); }
+  .card.negative { background: var(--neg-bg); border-color: var(--neg-line); }
+  .card.negative:hover { border-color: var(--neg-line-hi); }
+
+  .card.on.positive { background: rgba(120,152,66,.22); border-color: var(--pos-line-hi); }
+  .card.on.positive::after { background: var(--pos); }
+  .card.on.negative { background: rgba(150,62,55,.22); border-color: var(--neg-line-hi); }
+  .card.on.negative::after { background: var(--neg); }
+
+  /* a perk you cannot currently afford — still clickable, just flagged */
+  .card.unaffordable:not(.on) { opacity: .48; }
+  .card.unaffordable:not(.on) .val { color: var(--warn); }
+  .card.unaffordable:not(.on):hover { opacity: .8; }
+
+  /* blocked by an opposing modifier — greyed out under a veil */
+  .block-veil {
+    /* -1px, not 0: `inset` resolves against the padding box, which would leave
+       the card's 1px border uncovered */
+    position: absolute; inset: -1px; z-index: 2;
+    display: none; align-items: center; justify-content: center;
+    padding: 0 12px; text-align: center;
+    background: rgba(9,11,10,.62);
+    border-radius: 3px;
+  }
+  .card.blocked .block-veil { display: flex; }
+  /* fade the card itself rather than piling opacity onto the veil — otherwise
+     the title bleeds through and collides with the message */
+  .card.blocked > .icon, .card.blocked > .body { opacity: .18; }
+  .card.blocked { cursor: not-allowed; filter: grayscale(1); }
+  .card.blocked:hover { border-color: var(--line); }
+  .card.blocked:active { transform: none; }
+  .block-msg {
+    font: 600 12px/1.4 var(--sans); letter-spacing: .04em;
+    color: var(--warn);
+  }
+  .block-msg small {
+    display: block; margin-top: 3px;
+    font: 400 10.5px/1.3 var(--sans); color: var(--text-faint); letter-spacing: 0;
+  }
+
+  /* Longhands, not the `mask:` shorthand — the shorthand plus var() is the
+     shakier path across engines, and we gain nothing from it here. */
+  .icon {
+    width: 56px; height: 56px; justify-self: center;
+    background-color: var(--text-faint);
+    -webkit-mask-image: var(--ic);        mask-image: var(--ic);
+    -webkit-mask-size: contain;           mask-size: contain;
+    -webkit-mask-repeat: no-repeat;       mask-repeat: no-repeat;
+    -webkit-mask-position: center;        mask-position: center;
+    transition: background-color .14s;
+  }
+  .card:hover .icon { background-color: var(--text-dim); }
+  .card.on.positive .icon { background-color: var(--pos); }
+  .card.on.negative .icon { background-color: var(--neg); }
+  .card.global .icon { background-color: var(--text-dim); }
+
+  .body { min-width: 0; }
+  .title {
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; margin-bottom: 5px;
+  }
+  .title h3 {
+    /* nowrap: let the row wrap around it instead — a long koName next to a
+       short title used to squeeze the title itself into two ragged lines */
+    margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e7ebe8;
+    white-space: nowrap;
+  }
+  /* one title annotation exists per language; only the active one is shown.
+     English has none — m.name (the h3) is already the game's own English title. */
+  .ko-name, .ja-name {
+    font-size: 12px; line-height: 1.25; color: var(--text-faint); white-space: nowrap;
+    display: none;
+  }
+  body.lang-ko .ko-name, body.lang-ja .ja-name { display: inline; }
+  .val {
+    font: 700 13px/1 var(--mono); font-variant-numeric: tabular-nums;
+    margin-left: auto; flex: 0 0 auto; padding-left: 8px;
+  }
+  .card.positive .val { color: var(--pos); }
+  .card.negative .val { color: var(--neg); }
+
+  /* body text: exactly one of these three shows, matching the active language */
+  ul.desc { margin: 0; padding: 0; list-style: none; display: none; }
+  ul.desc li {
+    font-size: 12.5px; line-height: 1.45; color: var(--text-dim);
+    padding-left: 11px; position: relative;
+  }
+  ul.desc li::before {
+    content: "·"; position: absolute; left: 2px; color: var(--text-faint);
+  }
+  .ko, .ja {
+    margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b9c0bc;
+    display: none;
+  }
+  body.lang-ko .ko { display: block; }
+  body.lang-ja .ja { display: block; }
+  body.lang-en ul.desc { display: block; }
+
+  @media (max-width: 620px) {
+    /* a wrapping title used to drag the value off the top-right corner */
+    .card { grid-template-columns: 48px 1fr; padding: 12px 46px 12px 6px; }
+    .icon { width: 44px; height: 44px; }
+    .title { margin-bottom: 4px; }
+    .val { position: absolute; top: 13px; right: 12px; margin: 0; padding: 0; }
+    .ko-name, .ja-name { white-space: normal; }
+  }
+  .ko .trunc {
+    color: var(--warn); cursor: help; font-weight: 600;
+  }
+
+  .empty {
+    grid-column: 1 / -1; padding: 28px; text-align: center;
+    color: var(--text-faint); font-size: 13px;
+    border: 1px dashed var(--line); border-radius: 3px;
+  }
+
+  footer {
+    grid-column: 1 / -1;
+    margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--text-faint); font-size: 12px; line-height: 1.7;
+  }
+  footer code { font: 11px/1 var(--mono); color: var(--text-dim); }
+  .foot-assume { color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+  .foot-link {
+    display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px;
+    border: 1px solid var(--line); color: var(--text-dim); font-size: 12px; text-decoration: none;
+  }
+  .foot-link:hover { color: var(--text); border-color: var(--text-dim); }
+
+  /* ------------------------------------------------------------ bottom sheet */
+  .sheet { display: none; }
+
+  @media (max-width: 1080px) {
+    /* the header stacked four rows deep on a phone; flatten it */
+    .head-in { gap: 9px 14px; padding: 10px 16px; }
+    .brand b { font: 700 16px/1 var(--sans); letter-spacing: .13em; }
+    .brand small { font-size: 9px; letter-spacing: .24em; }
+    .verdict { order: 2; margin-left: auto; padding: 7px 12px; font-size: 11px; letter-spacing: .12em; }
+    .meter { order: 3; flex: 1 1 100%; min-width: 0; }
+    .meter-top { margin-bottom: 6px; font-size: 11px; }
+    .balance { font-size: 20px; }
+    header .tools { display: none; }   /* relocated into the sheet by JS */
+
+    aside { display: none !important; }
+    body { padding-bottom: 76px; }     /* clear the collapsed sheet bar */
+    .sheet { display: block; }
+  }
+
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--panel); border-top: 1px solid var(--line-hi);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.45);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sheet-bar {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 16px 16px 14px; min-height: 60px;
+    background: transparent; border: 0; color: inherit; font: inherit;
+    cursor: pointer; text-align: left;
+    /* the drag gesture drives this, not the browser's own pan/refresh handling */
+    touch-action: none;
+  }
+  .sheet-bar:focus-visible { outline: 2px solid #6e8a44; outline-offset: -3px; }
+  /* A bare pill handle reads as "drag me" in mobile UX convention, which
+     undersold that a plain tap works too. A bordered circular chevron reads
+     as a normal tap/expand button instead — still draggable underneath. */
+  .sheet-arrow {
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line-hi); background: var(--panel-2);
+    font-size: 11px; line-height: 1; color: var(--text-dim);
+    transform: rotate(0deg);
+    transition: transform .22s, color .18s, background-color .18s, border-color .18s;
+  }
+  .sheet.open .sheet-arrow {
+    transform: rotate(180deg); color: var(--pos);
+    background: rgba(120,152,66,.16); border-color: var(--pos-line-hi);
+  }
+  .sheet-bar:active .sheet-arrow { background: var(--panel); }
+  .sheet-count { font: 500 13px/1 var(--sans); color: var(--text); }
+  .sheet-bal {
+    margin-left: auto; font: 500 12px/1 var(--sans); color: var(--text-dim);
+  }
+  .sheet-bal b {
+    font: 700 15px/1 var(--mono); color: var(--ok); margin-left: 5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sheet-bal b.bad { color: var(--bad); }
+  .sheet-verdict {
+    padding: 6px 10px; border-radius: 3px; border: 1px solid;
+    font: 700 10px/1 var(--sans); letter-spacing: .1em; white-space: nowrap;
+  }
+  .sheet-verdict.ok  { color: var(--ok);  border-color: #2f5c3a; background: rgba(60,140,80,.12); }
+  .sheet-verdict.bad { color: var(--bad); border-color: #6b2b25; background: rgba(190,60,50,.12); }
+
+  .sheet-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height .26s cubic-bezier(.4,0,.2,1);
+  }
+  .sheet.open .sheet-body { max-height: min(66vh, 520px); overflow-y: auto; }
+  /* while actively dragged, JS drives max-height inline on every pointermove —
+     the transition would otherwise lag a finger by 260ms */
+  .sheet.dragging .sheet-body { transition: none; }
+  .sheet .picks { padding: 0 8px 8px; }
+  .sheet .pick { padding: 11px 8px; }        /* bigger tap targets */
+  .sheet .pick .x { visibility: visible; color: var(--text-faint); }
+  .sheet .pick .v { visibility: visible; margin-right: 22px; }
+  .sheet .pick .x { transform: translateX(2px); }
+
+  .sheet-tools { padding: 12px 14px; border-top: 1px solid var(--line); }
+  /* .tools moves in here whole, so it stays a flex row of its own */
+  .sheet-tools .tools { width: 100%; }
+  .sheet-tools .tool { flex: 1 1 auto; text-align: center; padding: 11px 10px; }
+
+  /* ------------------------------------------------------------ modal */
+  .modal {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(6,8,7,.82); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal[hidden] { display: none; }
+  .modal-in {
+    display: flex; flex-direction: column; max-width: 900px; max-height: 100%;
+    background: var(--panel); border: 1px solid var(--line-hi); border-radius: 4px;
+    overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 {
+    margin: 0; font: 600 12px/1 var(--sans); letter-spacing: .2em; color: var(--text-dim);
+  }
+  .modal-x {
+    margin-left: auto; width: 30px; height: 30px; padding: 0;
+    background: transparent; border: 1px solid var(--line); border-radius: 3px;
+    color: var(--text-dim); font: 400 18px/1 var(--sans); cursor: pointer;
+  }
+  .modal-x:hover { color: var(--text); border-color: var(--line-hi); }
+
+  .modal-img { overflow: auto; padding: 12px; background: var(--bg); }
+  /* -webkit-touch-callout must stay ON: the long-press "사진에 저장" menu is
+     how you save this on iOS, where <a download> just dumps it into Files. */
+  .modal-img img {
+    display: block; max-width: 100%; height: auto; border-radius: 2px;
+    -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto;
+  }
+
+  .modal-foot {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    justify-content: flex-end;
+    padding: 12px 14px; border-top: 1px solid var(--line);
+  }
+  .modal-foot .hint { font-size: 12px; color: var(--text-faint); margin-right: auto; }
+  .modal-foot .tool { padding: 9px 16px; }
+  @media (max-width: 560px) {
+    /* let the buttons sit on one line and drop the hint underneath */
+    .modal-foot .hint { order: 2; flex: 1 0 100%; margin: 2px 0 0; text-align: center; }
+  }
+
+  /* ------------------------------------------------------------ presets */
+  .preset-in { width: 420px; max-width: 100%; }
+  .preset-hint { padding: 10px 14px 2px; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .preset-list { padding: 8px; max-height: min(60vh, 420px); overflow-y: auto; }
+  .preset-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 10px; border-radius: 3px;
+  }
+  .preset-row:hover { background: var(--panel-2); }
+  .preset-name { font-size: 13px; color: var(--text); min-width: 0; }
+  .preset-name.empty { color: var(--text-dim); font-style: italic; }
+  .preset-name .slot-tag { color: var(--text-dim); font-style: normal; margin-right: 6px; }
+  .preset-name .slot-time { color: var(--text-dim); font-style: normal; font-size: 11px; }
+  .preset-row .spacer { margin-left: auto; }
+  .preset-row .tool { padding: 6px 11px; flex: 0 0 auto; font-size: 12px; }
+  .preset-row .slot-clear { color: var(--text-dim); }
+  .preset-foot { display: flex; gap: 8px; align-items: stretch; }
+  .slot-name-input {
+    flex: 1 1 auto; min-width: 0; padding: 8px 11px; font: inherit; font-size: 13px;
+    color: var(--text); background: var(--panel-2); border: 1px solid var(--line, #333);
+    border-radius: 3px;
+  }
+  .slot-name-input::placeholder { color: var(--text-dim); }
+  .slot-name-input:focus { outline: none; border-color: var(--text-dim); }
+  #presetSaveBtn { flex: 0 0 auto; text-align: center; }
+  /* --------------------------------------------------------- save prompt */
+  .save-ask-body { padding: 14px 16px 18px; }
+  .save-ask-msg { font-size: 13px; color: var(--text-dim); line-height: 1.55; margin-bottom: 14px; }
+  .save-ask-btns, .slot-pick { display: flex; flex-direction: column; gap: 8px; }
+  .save-ask-btns .tool, .slot-pick .tool { width: 100%; text-align: center; padding: 11px; }
+  #askSaveImg { background: var(--accent, var(--panel-2)); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+    background: var(--panel-2); border: 1px solid var(--line-hi); border-radius: 3px;
+    padding: 10px 18px; font-size: 13px; color: var(--text);
+    opacity: 0; pointer-events: none; transition: .2s; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body class="lang-ko">
+
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <b>UNTAR<span>·</span>CONTROL</b>
+      <small>SEASON 2 <i id="verTag"></i></small>
+    </div>
+
+    <div class="meter">
+      <div class="meter-top">
+        <span id="balance" class="balance">0</span>
+        <span id="meterLeftLabel">잔여 포인트</span>
+        <span class="sep">/</span>
+        <span id="meterDetail">디버프 0 · 퍽 0</span>
+      </div>
+      <div class="bar" id="bar"><i id="barFill"></i></div>
+    </div>
+
+    <div id="verdict" class="verdict ok">PASS</div>
+
+    <div class="tools">
+      <button class="tool" id="onlyBtn" aria-pressed="false">선택만</button>
+      <button class="tool" id="randomBtn">랜덤</button>
+      <button class="tool" id="presetBtn">프리셋</button>
+      <button class="tool" id="shotBtn">이미지 저장</button>
+      <button class="tool" id="shareBtn">링크 복사</button>
+      <button class="tool" id="resetBtn">초기화</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <div class="aside-head">
+      <h2 id="asideTitle">선택 목록</h2>
+      <span class="count" id="pickCount">0 / 56</span>
+    </div>
+    <div class="picks" id="picks"></div>
+    <div class="achv" id="achv" hidden>
+      <div class="achv-head2">
+        <h3 id="achvTitle">획득 가능 업적</h3>
+        <button class="achv-build" id="achvBuild1">조합①</button>
+        <button class="achv-build" id="achvBuild2">조합②</button>
+      </div>
+      <div id="achvList"></div>
+      <div class="achv-free" id="achvFree"></div>
+    </div>
+    <div class="aside-foot">
+      <div class="gain"><span id="gainLbl">디버프로 획득</span><span id="fGain">+0</span></div>
+      <div class="cost"><span id="costLbl">퍽에 사용</span><span id="fCost">−0</span></div>
+      <div class="left" id="fLeftRow"><span id="leftLbl">잔여 포인트</span><span id="fLeft">0</span></div>
+    </div>
+  </aside>
+
+  <main>
+  <div class="promo">
+    <img class="promo-char" id="promoChar" alt="노잼망겜 캐릭터" width="249" height="235">
+    <div class="promo-body">
+      <div class="promo-kicker" id="promoKicker">시즌 캐릭터 모디파이어 (특성 퍽) 번역</div>
+      <div class="promo-name"><span id="brandName">노잼망겜</span> <span>NoJamMangGameTV</span></div>
+      <div class="promo-note" id="promoNote">공식 한글화 번역 아님</div>
+      <div class="promo-links">
+        <a class="yt" href="https://www.youtube.com/@NoJamMangGame" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+          YouTube
+        </a>
+        <a href="https://x.com/NoJamMangGameTV" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.81-5.96 6.81H1.69l7.73-8.84L1.27 2.25h6.82l4.71 6.23 5.44-6.23zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64z"/></svg>
+          X (Twitter)
+        </a>
+        <a class="foot-link" href="../" title="시즌 1 셀렉터로 이동">시즌 1 (KORD BREACH)</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="sec-global">
+    <div class="sec-head">
+      <h2>GLOBAL MODIFIERS</h2><span class="sec-ko" id="secKoGlobal">공통 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tallyGlobal">항상 적용 · 비용 없음</span>
+    </div>
+    <div class="grid" id="grid-global"></div>
+  </section>
+
+  <section id="sec-positive">
+    <div class="sec-head">
+      <h2>PERSONAL POSITIVE</h2><span class="sec-ko sec-ko-choice">선택 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tally-positive"></span>
+    </div>
+    <div class="grid" id="grid-positive"></div>
+  </section>
+
+  <section id="sec-negative">
+    <div class="sec-head">
+      <h2>PERSONAL NEGATIVE</h2><span class="sec-ko sec-ko-choice">선택 적용 사항</span><span class="rule"></span>
+      <span class="tally" id="tally-negative"></span>
+    </div>
+    <div class="grid" id="grid-negative"></div>
+  </section>
+  </main>
+
+  <footer>
+    <div id="footerRule">합계가 <b>0 이상</b>이면 통과. 디버프(+)를 켜서 포인트를 벌고, 퍽(−)에 씁니다.</div>
+    <div class="foot-assume" id="rulesNote"></div>
+    <div class="foot-assume" id="exclNote"></div>
+    <div class="foot-assume" id="valuesNote"></div>
+    <div id="footerBudget">디버프 합계는 +74지만 배타 규칙 때문에 실제 최대는 <b>+73</b>, 모든 퍽의 총 비용은 <b>−97</b>입니다.</div>
+    <div id="footerShare">선택 상태는 브라우저에 저장되고 URL <code>#b=…</code> 로도 공유됩니다. 수치는 시즌 시작 전 변경될 수 있습니다.</div>
+    <span id="verFoot"></span>
+  </footer>
+</div>
+
+<!-- phones: the aside is hidden and this pulls up from the bottom instead -->
+<div class="sheet" id="sheet">
+  <button class="sheet-bar" id="sheetBar" aria-expanded="false" aria-controls="sheetBody">
+    <span class="sheet-count" id="sheetCount">0개 선택</span>
+    <span class="sheet-bal"><span id="sheetLeftLbl">잔여</span> <b id="sheetBal">0</b></span>
+    <span class="sheet-verdict ok" id="sheetVerdict">PASS</span>
+    <span class="sheet-arrow" id="sheetArrow" aria-hidden="true">▾</span>
+  </button>
+  <div class="sheet-body" id="sheetBody">
+    <div class="sheet-achv" id="sheetAchv"></div>
+    <div class="picks" id="sheetPicks"></div>
+    <div class="sheet-tools" id="sheetTools"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-in" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">조합 이미지</h2>
+      <button class="modal-x" id="modalClose" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-img"><img id="shotImg" alt="선택한 모디파이어 조합"></div>
+    <div class="modal-foot">
+      <span class="hint" id="modalHint">이미지를 길게 눌러 저장할 수 있습니다</span>
+      <button class="tool" id="copyImgBtn" hidden>이미지 복사</button>
+      <button class="tool" id="shareImgBtn" hidden>공유</button>
+      <button class="tool" id="dlBtn">다운로드</button>
+    </div>
+  </div>
+</div>
+
+<!-- Three save slots kept in localStorage (per browser). Saving a slot also
+     fires the build to the Google Sheet collector — see sendToSheet(). -->
+<div class="modal" id="presetModal" hidden>
+  <div class="modal-in preset-in" role="dialog" aria-modal="true" aria-labelledby="presetTitle">
+    <div class="modal-head">
+      <h2 id="presetTitle">내 프리셋</h2>
+      <button class="modal-x" id="presetClose" aria-label="닫기">×</button>
+    </div>
+    <p class="preset-hint" id="presetHint">이 기기에 최대 3개까지 저장됩니다.</p>
+    <div class="preset-list" id="presetList"></div>
+    <div class="modal-foot preset-foot">
+      <input type="text" id="slotNameInput" class="slot-name-input" maxlength="40"
+             placeholder="이름 (비워두면 시각)" autocomplete="off">
+      <button class="tool" id="presetSaveBtn">현재 조합 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shown when "이미지 저장" is clicked: offer to save the build into a slot
+     first, then render the image either way. -->
+<div class="modal" id="saveAsk" hidden>
+  <div class="modal-in preset-in" role="dialog" aria-modal="true" aria-labelledby="saveAskTitle">
+    <div class="modal-head">
+      <h2 id="saveAskTitle">현재 조합을 저장할까요?</h2>
+      <button class="modal-x" id="saveAskClose" aria-label="닫기">×</button>
+    </div>
+    <div class="save-ask-body" id="saveAskP1">
+      <p class="save-ask-msg" id="saveAskMsg">이미지로 저장하기 전에, 이 조합을 이 기기의 슬롯에 저장할 수 있습니다.</p>
+      <div class="save-ask-btns">
+        <button class="tool" id="askImgOnly">이미지만</button>
+        <button class="tool" id="askSaveImg">저장하고 이미지</button>
+      </div>
+    </div>
+    <div class="save-ask-body" id="saveAskP2" hidden>
+      <p class="save-ask-msg" id="saveAskPick">저장할 슬롯을 고르세요</p>
+      <div class="slot-pick" id="slotPick"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="achv-tip" id="achvTip" hidden></div>
+
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script src="../char.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  document.getElementById('promoChar').src = CHARACTER_URI;
+  document.getElementById('verTag').textContent = `v${APP_VERSION}`;   // same in every language, set once
+  // verFoot is language-dependent — applyStaticText() (below) sets it
+
+  const CATS = ['global', 'positive', 'negative'];
+  const BY_CAT = Object.fromEntries(CATS.map(c => [c, MODIFIERS.filter(m => m.cat === c)]));
+  const SELECTABLE = MODIFIERS.filter(m => m.value !== null);
+  const BUDGET_MAX = BY_CAT.negative.reduce((s, m) => s + m.value, 0);   // +34
+  const BY_ID = new Map(MODIFIERS.map(m => [m.id, m]));
+
+  // ---------------------------------------------------------------- language
+  const LANGS = ['ko'];   // season 2 source material is Korean-only
+  const LANG_KEY = 'untar-control-lang';
+  let lang = 'ko';
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (LANGS.includes(saved)) lang = saved;
+  } catch { /* Safari throws on file://; default stands */ }
+
+  function t(key, vars) {
+    const entry = STRINGS[key];
+    if (!entry) return key;
+    let s = entry[lang] ?? entry.ko;
+    if (vars) for (const k in vars) s = s.split(`{${k}}`).join(vars[k]);
+    return s;
+  }
+  // The game's own English title (m.name) always doubles as the English
+  // translation, so 'en' has no separate name field the way ko/ja do.
+  const nameFor = (m) => m.koName;
+  const bodyOf = (m) => m.ko;
+  const axisFor = (axis) => axis[lang] ?? axis.ko;
+
+  // id -> [{ other: modifier, kind, axis }, ...]
+  const CONFLICTS = new Map();
+  for (const { a, b, kind, axis } of EXCLUSIONS) {
+    for (const [x, y] of [[a, b], [b, a]]) {
+      if (!CONFLICTS.has(x)) CONFLICTS.set(x, []);
+      CONFLICTS.get(x).push({ other: BY_ID.get(y), kind, axis });
+    }
+  }
+  /** The selected modifier that forbids `m`, or null. */
+  const blockerOf = (m) =>
+    (CONFLICTS.get(m.id) ?? []).find(c => selected.has(c.other.id)) ?? null;
+
+  const STORE_KEY = 'untar-control-selection';
+  const selected = new Set();
+
+  // ---------------------------------------------------------------- state io
+  // Selection is a bitmask over ids 7..39, base36-encoded. The 1.1.0 additions
+  // (ids 37-39) pushed this past 31 bits, where JS bitwise operators wrap —
+  // so the mask is built with arithmetic instead (exact in a double up to
+  // 2^53). Old saved/shared codes keep their meaning: bit positions for ids
+  // 7..36 are unchanged.
+  const BIT0 = 7;
+  const encode = () => {
+    let n = 0;
+    for (const id of selected) n += 2 ** (id - BIT0);
+    return n.toString(36);
+  };
+  const decode = (s) => {
+    const n = parseInt(s, 36);
+    if (!Number.isFinite(n) || n < 0) return null;
+    const out = new Set();
+    for (const m of SELECTABLE) if (Math.floor(n / 2 ** (m.id - BIT0)) % 2) out.add(m.id);
+    return out;
+  };
+
+  // Safari throws on localStorage from file:// (opaque origin), so never let
+  // persistence failure take the whole app down with it.
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* no-op */ } },
+  };
+
+  // An old or hand-edited link can name both halves of an exclusive pair.
+  // Keep the first, drop the rest, rather than rendering an impossible build.
+  function dropConflicts(ids) {
+    const kept = new Set();
+    for (const id of [...ids].sort((x, y) => x - y)) {
+      const clash = (CONFLICTS.get(id) ?? []).some(c => kept.has(c.other.id));
+      if (!clash) kept.add(id);
+    }
+    return kept;
+  }
+
+  function load() {
+    const hash = new URLSearchParams(location.hash.slice(1)).get('b');
+    const from = hash ?? store.get(STORE_KEY);
+    if (!from) return;
+    const s = decode(from);
+    if (s) dropConflicts(s).forEach(id => selected.add(id));
+  }
+  function save() {
+    const code = encode();
+    store.set(STORE_KEY, code);
+    try {
+      history.replaceState(null, '', code === '0' ? location.pathname : `#b=${code}`);
+    } catch { /* some browsers refuse replaceState on file:// */ }
+  }
+  // location.origin is the string "null" on file://, so build from href instead.
+  const shareUrl = () => `${location.href.split('#')[0]}#b=${encode()}`;
+
+  // ---------------------------------------------------------------- render
+  const el = (tag, cls, txt) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  };
+  const fmt = (v) => (v > 0 ? `+${v}` : `${v}`);
+
+  const cards = new Map();   // id -> element
+
+  function buildCard(m) {
+    const isGlobal = m.cat === 'global';
+    const node = el(isGlobal ? 'div' : 'button', `card ${m.cat}`);
+    if (!isGlobal) {
+      node.type = 'button';
+      node.setAttribute('aria-pressed', 'false');
+    }
+
+    const icon = el('div', 'icon');
+    icon.style.setProperty('--ic', `url("${ICON_URI[m.id]}")`);
+    node.append(icon);
+
+    const body = el('div', 'body');
+    const title = el('div', 'title');
+    // Season 2's source sheet is Korean-only, so the card carries one title.
+    const h3 = el('h3', null, m.koName);
+    if (m.koGuess) {
+      const mark = el('span', 'trunc', ' ◆');
+      mark.title = '자료에서 제목 첫 글자가 아이콘에 가려져 있어 추정한 이름입니다.';
+      h3.append(mark);
+    }
+    title.append(h3);
+    if (m.value !== null) title.append(el('span', 'val', fmt(m.value)));
+    body.append(title);
+
+    const ul = el('ul', 'desc');
+    m.ko.forEach(line => ul.append(el('li', null, line)));
+    body.append(ul);
+
+    node.append(body);
+    if (!isGlobal) {
+      const veil = el('span', 'block-veil');
+      veil.append(el('span', 'block-msg'));
+      node.append(veil);
+      node.addEventListener('click', () => toggle(m.id));
+    }
+    cards.set(m.id, node);
+    return node;
+  }
+
+  const BLOCK_KEY = { official: 'veilOfficial', inferred: 'veilInferred' };
+
+  for (const c of CATS) {
+    const grid = document.getElementById(`grid-${c}`);
+    BY_CAT[c].forEach(m => grid.append(buildCard(m)));
+    grid.append(Object.assign(el('div', 'empty'), { hidden: true }));
+  }
+
+  // ---------------------------------------------------------------- aside
+  const $picks = document.getElementById('picks');
+
+  // renderPicksInto() rebuilds these from scratch on every render() call
+  // (including after a language switch), so reading the current `lang`
+  // here at build time is enough — no separate repaint path needed.
+  function buildPick(m) {
+    const row = el('button', `pick ${m.cat}`);
+    row.type = 'button';
+    row.title = t('pickRemove', { name: m.koName });
+
+    const icon = el('div', 'icon');
+    icon.style.setProperty('--ic', `url("${ICON_URI[m.id]}")`);
+
+    row.append(icon, el('span', 'nm', nameFor(m)), el('span', 'v', fmt(m.value)), el('span', 'x', '×'));
+    row.addEventListener('click', () => toggle(m.id));
+    return row;
+  }
+
+  const $sheetPicks = document.getElementById('sheetPicks');
+
+  function renderPicksInto(container) {
+    container.replaceChildren();
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+
+    if (!picked.length) {
+      container.append(el('div', 'picks-empty', t('emptyPicks')));
+      return;
+    }
+    for (const [cat, key] of [['negative', 'groupNeg'], ['positive', 'groupPos']]) {
+      const rows = picked.filter(m => m.cat === cat);
+      if (!rows.length) continue;
+      const group = el('div', 'picks-group');
+      group.append(el('h3', null, t(key)));
+      rows.forEach(m => group.append(buildPick(m)));
+      container.append(group);
+    }
+  }
+  // the aside and the phone sheet show the same list; each needs its own nodes
+  const renderPicks = () => { renderPicksInto($picks); renderPicksInto($sheetPicks); };
+
+  // ------------------------------------------------- achievements (aside)
+  // Which season achievements does the CURRENT selection qualify for?
+  // Only the modifier half of each condition is checked; the in-game half
+  // (level 30, obtain Kappa, money…) rides along as a muted note.
+  const $achvList = document.getElementById('achvList');
+
+  function achvStatus(a) {
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const c = a.cond;
+    // a "caution" modifier doesn't break the achievement, but changes how the
+    // in-game half works (e.g. Kappa Protocol's handout likely won't count as
+    // "obtaining" — a proper one is still needed on the side)
+    const caution = !!(c.caution && c.caution.some(id => selected.has(id)));
+    if (c.perksMax !== undefined) {
+      const n = picked.filter(m => m.cat === 'positive').length;
+      return { caution, met: n <= c.perksMax, prog: n <= c.perksMax ? '✓' : t('achvPerkCount', { n }) };
+    }
+    if (c.negMin !== undefined) {
+      const n = picked.filter(m => m.cat === 'negative').length;
+      return { caution, met: n >= c.negMin, prog: `${n}/${c.negMin}` };
+    }
+    if (c.pool) {
+      const n = c.pool.filter(id => selected.has(id)).length;
+      return { caution, met: n >= c.n, prog: `${Math.min(n, c.n)}/${c.n}` };
+    }
+    const n = c.all.filter(id => selected.has(id)).length;
+    return { caution, met: n === c.all.length, prog: `${n}/${c.all.length}` };
+  }
+
+  // THIRD LEG's display name carries a long quip in ko/ja — too long for the
+  // requirement lists here, so cut at the quote.
+  const shortName = (m) => nameFor(m).split(' "')[0].split('「')[0];
+
+  function achvCondText(a) {
+    const c = a.cond;
+    if (c.perksMax !== undefined) return t('achvCondNoPerks');
+    if (c.negMin !== undefined) return t('achvCondNegMin', { n: c.negMin });
+    const list = (c.pool ?? c.all).map(id => shortName(BY_ID.get(id))).join(' · ');
+    return c.pool ? t('achvCondPool', { n: c.n, list }) : t('achvCondNeed', { list });
+  }
+
+  const $sheetAchv = document.getElementById('sheetAchv');
+
+  // Rich hover card: the aside rows are too narrow to spell everything out,
+  // so pointerenter shows the full name / status / requirement / note in a
+  // floating panel. On touch (the phone strip) the same card toggles on tap.
+  const $achvTip = document.getElementById('achvTip');
+
+  function showAchvTip(a, anchor) {
+    const { met, caution, prog } = achvStatus(a);   // re-evaluate: fresh status
+    const cond = achvCondText(a);
+    $achvTip.replaceChildren(
+      el('div', 't-name', a.name[lang] ?? a.name.ko),
+      el('div', 't-status ' + (met ? 'ok' : 'no'),
+        (met ? `✓ ${prog}` : prog) + (caution ? ` · ⚠ ${t('achvCaution')}` : '')),
+      el('div', 't-cond', cond),
+      el('div', 't-note' + (caution ? ' warn' : ''),
+        caution ? `⚠ ${a.warn[lang] ?? a.warn.ko}` : (a.note[lang] ?? a.note.ko)),
+    );
+    $achvTip.hidden = false;
+    // measure, then place beside the anchor and clamp to the viewport
+    const r = anchor.getBoundingClientRect();
+    const tw = $achvTip.offsetWidth, th = $achvTip.offsetHeight;
+    let x = r.right + 12, y = r.top - 4;
+    if (x + tw > innerWidth - 8) x = Math.max(8, r.left - tw - 12);   // flip left
+    if (y + th > innerHeight - 8) y = innerHeight - th - 8;
+    if (y < 8) y = 8;
+    if (x + tw > innerWidth - 8) { x = Math.min(innerWidth - tw - 8, r.left); y = r.top - th - 10; } // above (phone strip)
+    $achvTip.style.left = `${Math.max(8, x)}px`;
+    $achvTip.style.top = `${Math.max(8, y)}px`;
+  }
+  const hideAchvTip = () => { $achvTip.hidden = true; };
+
+  // one-tap example builds (the two verified roadmap characters).
+  // buildTags marks each pick as achievement-required ('fix') or filler
+  // ('fr'); render() paints them as corner badges on the selected cards.
+  // Cleared whenever the selection is replaced wholesale (reset / random /
+  // slot load) — manual single toggles just add untagged cards.
+  const buildTags = new Map();
+  function applyAchvBuild(b) {
+    selected.clear();
+    buildTags.clear();
+    dropConflicts(new Set(b.ids)).forEach(id => {
+      selected.add(id);
+      buildTags.set(id, b.fixed.includes(id) ? 'fix' : 'fr');
+    });
+    save();
+    render();
+    hideAchvTip();
+    toast(t('achvApplied', { name: b.name[lang] ?? b.name.ko }));
+  }
+  document.getElementById('achvBuild1').addEventListener('click', () => applyAchvBuild(ACHV_BUILDS[0]));
+  document.getElementById('achvBuild2').addEventListener('click', () => applyAchvBuild(ACHV_BUILDS[1]));
+  addEventListener('scroll', hideAchvTip, true);
+  addEventListener('resize', hideAchvTip);
+
+  function hookAchvTip(node, a) {
+    node.addEventListener('pointerenter', () => showAchvTip(a, node));
+    node.addEventListener('pointerleave', hideAchvTip);
+    node.addEventListener('click', (e) => {           // touch: tap toggles
+      if ($achvTip.hidden) { showAchvTip(a, node); e.stopPropagation(); }
+      else hideAchvTip();
+    });
+  }
+
+  function renderAchievements() {
+    $achvList.replaceChildren();
+    $sheetAchv.replaceChildren();
+    for (const a of ACHIEVEMENTS) {
+      const { met, caution, prog } = achvStatus(a);
+      const cond = achvCondText(a);
+      const note = caution ? (a.warn[lang] ?? a.warn.ko) : (a.note[lang] ?? a.note.ko);
+
+      const row = el('div', 'achv-row' + (met ? ' met' : '') + (caution ? ' wrn' : ''));
+      const ic = el('span', 'aic');
+      ic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
+      row.append(ic);
+      row.append(el('span', 'anm', a.name[lang] ?? a.name.ko));
+      row.append(el('span', 'ap', caution ? `⚠ ${prog}` : prog));
+      hookAchvTip(row, a);
+      $achvList.append(row);
+      $achvList.append(el('div', 'achv-note' + (caution ? ' warn' : ''),
+        caution ? `⚠ ${note}` : `${cond} — ${note}`));
+
+      // phone strip: icon only — green when satisfied, amber when cautioned
+      const sic = el('span', 'aic' + (met ? ' met' : '') + (caution ? ' wrn' : ''));
+      sic.style.setProperty('--ic', `url("${ACHV_ICON[a.id]}")`);
+      hookAchvTip(sic, a);
+      $sheetAchv.append(sic);
+    }
+    // the same two example-build buttons, phone-sized
+    for (const [i, b] of ACHV_BUILDS.entries()) {
+      const btn = el('button', 'achv-build', t(i === 0 ? 'achvBuild1' : 'achvBuild2'));
+      btn.addEventListener('click', (e) => { e.stopPropagation(); applyAchvBuild(b); });
+      $sheetAchv.append(btn);
+    }
+  }
+
+  // ---------------------------------------------------------------- logic
+  const $balance = document.getElementById('balance');
+  const $detail  = document.getElementById('meterDetail');
+  const $verdict = document.getElementById('verdict');
+  const $bar     = document.getElementById('bar');
+  const $fill    = document.getElementById('barFill');
+  let onlyMode = false;
+
+  function toggle(id) {
+    if (selected.has(id)) {
+      selected.delete(id);            // turning something off is always allowed
+    } else {
+      const blocker = blockerOf(BY_ID.get(id));
+      if (blocker) return toast(t('toastBlocked', { name: nameFor(blocker.other), axis: axisFor(blocker.axis) }));
+      selected.add(id);
+    }
+    save();
+    render();
+  }
+
+  function render() {
+    let gain = 0, cost = 0;
+    for (const m of SELECTABLE) {
+      if (!selected.has(m.id)) continue;
+      if (m.value > 0) gain += m.value; else cost += -m.value;
+    }
+    const balance = gain - cost;
+    const pass = balance >= 0;
+
+    $balance.textContent = fmt(balance).replace('+', '');
+    $balance.classList.toggle('bad', !pass);
+    $detail.textContent = t('meterDetail', { gain, cost });
+    $verdict.textContent = pass ? 'PASS' : 'OVER BUDGET';
+    $verdict.className = `verdict ${pass ? 'ok' : 'bad'}`;
+
+    renderPicks();
+    renderAchievements();
+    const nPicked = SELECTABLE.filter(m => selected.has(m.id)).length;
+    document.getElementById('pickCount').textContent = `${nPicked} / ${SELECTABLE.length}`;
+    document.getElementById('fGain').textContent = `+${gain}`;
+    document.getElementById('fCost').textContent = `−${cost}`;
+    document.getElementById('fLeft').textContent = fmt(balance).replace('+', '');
+    document.getElementById('fLeftRow').classList.toggle('bad', !pass);
+
+    document.getElementById('sheetCount').textContent = t('sheetCount', { n: nPicked });
+    const $sheetBal = document.getElementById('sheetBal');
+    $sheetBal.textContent = fmt(balance).replace('+', '');
+    $sheetBal.classList.toggle('bad', !pass);
+    const $sheetVerdict = document.getElementById('sheetVerdict');
+    $sheetVerdict.textContent = pass ? 'PASS' : 'OVER';
+    $sheetVerdict.className = `sheet-verdict ${pass ? 'ok' : 'bad'}`;
+
+    // bar shows spend against what you've actually unlocked, capped visually
+    const denom = Math.max(gain, cost, 1);
+    $fill.style.width = `${Math.min(100, (cost / denom) * 100)}%`;
+    $bar.classList.toggle('over', !pass);
+
+    for (const m of SELECTABLE) {
+      const node = cards.get(m.id);
+      const on = selected.has(m.id);
+      node.classList.toggle('on', on);
+      node.setAttribute('aria-pressed', String(on));
+
+      // fixed/free corner badge — only while an example build's tags are live
+      let btag = node.querySelector('.btag');
+      const tag = on ? buildTags.get(m.id) : null;
+      if (tag) {
+        if (!btag) { btag = el('span', 'btag'); node.append(btag); }
+        btag.className = 'btag ' + tag;
+        btag.textContent = t(tag === 'fix' ? 'tagFixed' : 'tagFree');
+      } else if (btag) {
+        btag.className = 'btag';
+      }
+
+      const blocker = on ? null : blockerOf(m);
+      node.classList.toggle('blocked', !!blocker);
+      node.setAttribute('aria-disabled', String(!!blocker));
+      if (blocker) {
+        const msg = node.querySelector('.block-msg');
+        msg.replaceChildren(t(BLOCK_KEY[blocker.kind]));
+        msg.append(el('small', null, `${blocker.other.name} · ${axisFor(blocker.axis)}`));
+        node.title = t('veilTitle', { name: nameFor(blocker.other) });
+      } else {
+        node.removeAttribute('title');
+      }
+
+      // a perk is "unaffordable" if taking it would push you below zero
+      const cannot = !blocker && m.value < 0 && !on && balance + m.value < 0;
+      node.classList.toggle('unaffordable', cannot);
+      node.hidden = onlyMode && !on;
+    }
+
+    for (const c of ['positive', 'negative']) {
+      const list = BY_CAT[c];
+      const n = list.filter(m => selected.has(m.id)).length;
+      const sum = list.filter(m => selected.has(m.id)).reduce((s, m) => s + m.value, 0);
+      document.getElementById(`tally-${c}`).textContent =
+        t('tallyCat', { n, total: list.length, sum: fmt(sum) });
+      const grid = document.getElementById(`grid-${c}`);
+      const empty = grid.querySelector('.empty');
+      empty.textContent = t('gridEmpty');
+      empty.hidden = !(onlyMode && n === 0);
+    }
+    document.getElementById('sec-global').hidden = onlyMode;
+  }
+
+  // ------------------------------------------------------------ share image
+  // Painted straight onto a canvas rather than rasterising the DOM. No external
+  // library to load, nothing that can taint the canvas (every image here is a
+  // data URI), and the output does not drift with the page's CSS.
+  const imgCache = new Map();
+  const loadImg = (uri) => {
+    if (!imgCache.has(uri)) imgCache.set(uri, new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error('image decode failed'));
+      im.src = uri;
+    }));
+    return imgCache.get(uri);
+  };
+
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  // icons ship as white + alpha; recolour by compositing a fill through them
+  function tinted(img, color, size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0, size, size);
+    x.globalCompositeOperation = 'source-in';
+    x.fillStyle = color;
+    x.fillRect(0, 0, size, size);
+    return c;
+  }
+
+  const SANS = getComputedStyle(document.body).fontFamily;
+  const MONO = cssVar('--mono');
+
+  // greedy wrap, capped — a runaway description shouldn't stretch the card
+  function wrapText(c, text, maxW, maxLines = 2) {
+    const words = text.split(' ');
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const next = cur ? `${cur} ${w}` : w;
+      if (!cur || c.measureText(next).width <= maxW) { cur = next; continue; }
+      lines.push(cur);
+      cur = w;
+      if (lines.length === maxLines) break;
+    }
+    if (lines.length < maxLines && cur) lines.push(cur);
+    if (lines.length === maxLines) {
+      let last = lines[maxLines - 1];
+      const rest = words.slice(lines.join(' ').split(' ').length).length;
+      if (rest > 0 || c.measureText(last).width > maxW) {
+        while (last.length > 1 && c.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+        lines[maxLines - 1] = last + '…';
+      }
+    }
+    return lines;
+  }
+
+  async function renderShareImage(scale = 2) {
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const gain = picked.reduce((s, m) => s + (m.value > 0 ? m.value : 0), 0);
+    const cost = picked.reduce((s, m) => s - (m.value < 0 ? m.value : 0), 0);
+    const balance = gain - cost;
+    const pass = balance >= 0;
+
+    const groups = [
+      ['negative', t('groupNeg'), cssVar('--neg')],
+      ['positive', t('groupPos'), cssVar('--pos')],
+    ].map(([cat, label, color]) => ({ cat, label, color, rows: picked.filter(m => m.cat === cat) }))
+     .filter(g => g.rows.length);
+
+    const W = 860, PAD = 30, GHEAD = 36, HEAD = 92, SUM = 62, FOOT = 82;
+    const TEXT_X = PAD + 44;                  // right of the icon
+    const DESC_W = W - TEXT_X - PAD - 64;     // leave room for the value column
+
+    const cv = document.createElement('canvas');
+    const c = cv.getContext('2d');
+
+    // pass 1 — wrap every description so we know how tall the card has to be
+    c.font = `400 12px ${SANS}`;
+    for (const g of groups) {
+      for (const m of g.rows) {
+        // koTruncated only ever applied to the Korean source text
+        m._lines = wrapText(c, bodyOf(m).join(' / '), DESC_W);
+        m._h = 26 + m._lines.length * 17 + 12;
+      }
+    }
+    const body = groups.reduce(
+      (h, g) => h + GHEAD + g.rows.reduce((s, m) => s + m._h, 0) + 10, 0);
+    const H = HEAD + SUM + body + FOOT;
+
+    // pass 2 — draw. Sizing the canvas resets its context, so scale after.
+    cv.width = W * scale;
+    cv.height = H * scale;
+    c.scale(scale, scale);
+    c.textBaseline = 'middle';
+
+    // plate + hatch
+    c.fillStyle = cssVar('--bg');
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,.02)';
+    c.lineWidth = 1;
+    for (let i = -H; i < W; i += 5) {
+      c.beginPath(); c.moveTo(i, 0); c.lineTo(i + H, H); c.stroke();
+    }
+
+    // ---- header
+    let y = 38;
+    c.fillStyle = '#eef2ef';
+    c.font = `700 23px ${SANS}`;
+    c.fillText('UNTAR CONTROL', PAD, y);
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `500 10px ${SANS}`;
+    c.fillText(`S E A S O N   1     v${APP_VERSION}`, PAD + 2, y + 22);
+
+    // verdict badge, right aligned
+    const badge = pass ? 'PASS' : 'OVER BUDGET';
+    c.font = `700 13px ${SANS}`;
+    const bw = c.measureText(badge).width + 34;
+    const bx = W - PAD - bw;
+    c.fillStyle = pass ? 'rgba(60,140,80,.14)' : 'rgba(190,60,50,.14)';
+    c.strokeStyle = pass ? '#2f5c3a' : '#6b2b25';
+    c.beginPath(); c.roundRect(bx, y - 17, bw, 34, 3); c.fill(); c.stroke();
+    c.fillStyle = pass ? cssVar('--ok') : cssVar('--bad');
+    c.textAlign = 'center';
+    c.fillText(badge, bx + bw / 2, y + 1);
+    c.textAlign = 'left';
+
+    // ---- summary strip
+    y = HEAD;
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(PAD, y); c.lineTo(W - PAD, y); c.stroke();
+
+    const cy = y + SUM / 2;
+    const stat = (label, value, color, x) => {
+      c.fillStyle = cssVar('--text-dim');
+      c.font = `500 12px ${SANS}`;
+      c.fillText(label, x, cy - 9);
+      c.fillStyle = color;
+      c.font = `700 19px ${MONO}`;
+      c.fillText(value, x, cy + 11);
+    };
+    stat(t('imgGain'), `+${gain}`, cssVar('--neg'), PAD);
+    stat(t('imgCost'), `−${cost}`, cssVar('--pos'), PAD + 150);
+    stat(t('imgLeft'), `${balance}`, pass ? cssVar('--ok') : cssVar('--bad'), PAD + 290);
+
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `500 12px ${SANS}`;
+    c.textAlign = 'right';
+    c.fillText(t('imgPicked', { n: picked.length, total: SELECTABLE.length }), W - PAD, cy);
+    c.textAlign = 'left';
+
+    y += SUM;
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(PAD, y); c.lineTo(W - PAD, y); c.stroke();
+
+    // ---- groups
+    for (const g of groups) {
+      y += GHEAD;
+      c.fillStyle = cssVar('--text-faint');
+      c.font = `600 11px ${SANS}`;
+      c.fillText(g.label, PAD, y - 14);
+
+      for (const m of g.rows) {
+        const top = y;
+        const img = await loadImg(ICON_URI[m.id]);
+        c.drawImage(tinted(img, g.color, 30 * scale), PAD, top + 6, 30, 30);
+
+        // Korean-only source: one title, no secondary label.
+        c.fillStyle = '#e7ebe8';
+        c.font = `600 14px ${SANS}`;
+        c.fillText(nameFor(m), TEXT_X, top + 14);
+
+        c.fillStyle = cssVar('--text-dim');
+        c.font = `400 12px ${SANS}`;
+        m._lines.forEach((line, i) => c.fillText(line, TEXT_X, top + 34 + i * 17));
+
+        c.fillStyle = g.color;
+        c.font = `700 14px ${MONO}`;
+        c.textAlign = 'right';
+        c.fillText(fmt(m.value), W - PAD, top + 14);
+        c.textAlign = 'left';
+
+        y = top + m._h;
+        if (m !== g.rows[g.rows.length - 1]) {
+          c.strokeStyle = 'rgba(255,255,255,.04)';
+          c.beginPath(); c.moveTo(TEXT_X, y - 5); c.lineTo(W - PAD, y - 5); c.stroke();
+        }
+      }
+      y += 10;
+    }
+
+    // ---- footer: channel plug
+    const fy = H - FOOT;
+    c.fillStyle = '#14181a';
+    c.fillRect(0, fy, W, FOOT);
+    c.strokeStyle = cssVar('--line');
+    c.beginPath(); c.moveTo(0, fy + .5); c.lineTo(W, fy + .5); c.stroke();
+
+    const chr = await loadImg(CHARACTER_URI);
+    const ch = 68, cw = chr.width / chr.height * ch;
+    c.drawImage(chr, PAD, H - ch, cw, ch);
+
+    const tx = PAD + cw + 16;
+    c.fillStyle = '#eef2ef';
+    c.font = `700 17px ${SANS}`;
+    c.fillText(t('brandName'), tx, fy + 30);
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `400 12px ${SANS}`;
+    c.fillText('youtube.com/@NoJamMangGame   ·   x.com/NoJamMangGameTV', tx, fy + 53);
+
+    c.fillStyle = cssVar('--text-faint');
+    c.font = `400 11px ${SANS}`;
+    c.textAlign = 'right';
+    c.fillText(t('promoNote'), W - PAD, fy + 30);
+    c.fillText(t('imgGlobalNote', { n: BY_CAT.global.length }), W - PAD, fy + 50);
+    c.textAlign = 'left';
+
+    return cv;
+  }
+  window.__renderShareImage = renderShareImage;   // dev/test.html hook
+
+  // ------------------------------------------------------------ bottom sheet
+  const $sheet = document.getElementById('sheet');
+  const $sheetBar = document.getElementById('sheetBar');
+  const $sheetBody = document.getElementById('sheetBody');
+
+  function setSheetOpen(open) {
+    $sheet.classList.toggle('open', open);
+    $sheetBar.setAttribute('aria-expanded', String(open));
+  }
+
+  // The bar's pill reads as a drag handle but tap-only made that a dead end.
+  // Both gestures now drive the same state: a real drag (pointer events, so
+  // mouse and touch share one path) tracks the finger 1:1, and a plain tap —
+  // no meaningful movement — falls back to the old toggle.
+  const sheetCap = () => Math.min(innerHeight * 0.66, 520);   // mirrors the CSS min()
+
+  let drag = null;          // { startY, startHeight, target, lastY, lastT, moved }
+  let suppressClick = false;
+
+  $sheetBar.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;   // ignore right/middle click
+    // scrollHeight reads 0 when an ancestor is display:none (desktop width,
+    // where the sheet is hidden) — fall back to the cap so we never divide by 0
+    const measured = $sheetBody.scrollHeight;
+    const target = Math.min(measured > 0 ? measured : sheetCap(), sheetCap());
+    drag = {
+      startY: e.clientY, lastY: e.clientY, lastT: e.timeStamp,
+      startHeight: $sheet.classList.contains('open') ? target : 0,
+      target, moved: false,
+    };
+    $sheet.classList.add('dragging');
+    try { $sheetBar.setPointerCapture(e.pointerId); } catch { /* synthetic events in tests */ }
+  });
+
+  $sheetBar.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (Math.abs(e.clientY - drag.startY) > 6) drag.moved = true;
+    const h = Math.min(drag.target, Math.max(0, drag.startHeight + (drag.startY - e.clientY)));
+    $sheetBody.style.maxHeight = `${h}px`;
+    drag.lastY = e.clientY;
+    drag.lastT = e.timeStamp;
+  });
+
+  function endDrag(e) {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    $sheet.classList.remove('dragging');
+
+    let open;
+    if (!d.moved) {
+      open = !$sheet.classList.contains('open');   // a plain tap toggles
+    } else {
+      const h = Math.min(d.target, Math.max(0, d.startHeight + (d.startY - e.clientY)));
+      const dt = Math.max(1, e.timeStamp - d.lastT);
+      const velocity = (d.lastY - e.clientY) / dt;   // px/ms, +up
+      // a quick flick wins outright; otherwise settle by how far it got dragged
+      open = Math.abs(velocity) > 0.5 ? velocity > 0 : h / d.target > 0.35;
+    }
+    $sheetBody.style.maxHeight = '';
+    setSheetOpen(open);
+
+    // mouse and touch both fire a trailing 'click' after pointerup — swallow
+    // it so the tap-vs-drag decision above doesn't get immediately re-toggled.
+    // Cleared on a timer too, in case some browser never fires it.
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 400);
+  }
+  $sheetBar.addEventListener('pointerup', endDrag);
+  $sheetBar.addEventListener('pointercancel', () => {
+    drag = null;
+    $sheet.classList.remove('dragging');
+    $sheetBody.style.maxHeight = '';   // leave open/closed state untouched
+  });
+
+  $sheetBar.addEventListener('click', () => {
+    // Reached by keyboard activation (Enter/Space fire 'click' with no
+    // preceding pointer events) and by test code calling .click() directly —
+    // neither goes through the pointer handlers above, so this still owns them.
+    if (suppressClick) { suppressClick = false; return; }
+    setSheetOpen(!$sheet.classList.contains('open'));
+  });
+
+  // One toolbar, two homes. Cloning it would duplicate ids and split the
+  // listeners, so the node itself moves when the layout crosses the breakpoint.
+  const $tools = document.querySelector('header .tools, #sheetTools .tools');
+  const $headIn = document.querySelector('.head-in');
+  const $sheetTools = document.getElementById('sheetTools');
+  const narrow = matchMedia('(max-width: 1080px)');
+
+  function placeTools() {
+    const target = narrow.matches ? $sheetTools : $headIn;
+    if ($tools.parentElement !== target) target.append($tools);
+  }
+  narrow.addEventListener('change', placeTools);
+  placeTools();
+
+  // ---------------------------------------------------------------- toolbar
+  const $toast = document.getElementById('toast');
+  let toastTimer;
+  function toast(msg) {
+    $toast.textContent = msg;
+    $toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $toast.classList.remove('show'), 1800);
+  }
+
+  // ---------------------------------------------------------------- i18n
+  const $langBtns = [...document.querySelectorAll('.lang-btn')];
+
+  // Every static (non-selection-dependent) piece of chrome text lives here,
+  // keyed by element id -> STRINGS key. render() handles the rest (anything
+  // that also depends on gain/cost/selection).
+  const STATIC_TEXT = {
+    onlyBtn: 'onlyBtn', shotBtn: 'shotBtn', shareBtn: 'shareBtn', resetBtn: 'resetBtn',
+    meterLeftLabel: 'leftLabel', asideTitle: 'asideTitle',
+    gainLbl: 'gainLabel', costLbl: 'costLabel', leftLbl: 'leftLabel',
+    promoKicker: 'promoKicker', promoNote: 'promoNote', brandName: 'brandName',
+    secKoGlobal: 'secGlobalKo', tallyGlobal: 'tallyGlobal',
+    footerRule: 'footerRule', footerBudget: 'footerBudget', footerShare: 'footerShare',
+    sheetLeftLbl: 'sheetLeft',
+    // (achievement chrome omitted — season 2's list is not out yet)
+    modalTitle: 'modalTitle', dlBtn: 'modalDownload', shareImgBtn: 'modalShare', copyImgBtn: 'modalCopyImg',
+    randomBtn: 'randomBtn', presetBtn: 'presetBtn', presetTitle: 'presetPanelTitle',
+    presetHint: 'presetPanelHint', presetSaveBtn: 'slotSaveCurrent',
+    saveAskTitle: 'saveAskTitle', saveAskMsg: 'saveAskMsg', saveAskPick: 'saveAskPick',
+    askImgOnly: 'askImgOnly', askSaveImg: 'askSaveImg',
+    rulesNote: 'rulesNote', exclNote: 'exclNote', valuesNote: 'valuesNote',
+  };
+
+  function applyStaticText() {
+    for (const [id, key] of Object.entries(STATIC_TEXT))
+      document.getElementById(id).innerHTML = t(key);
+    for (const el of document.querySelectorAll('.sec-ko-choice')) el.textContent = t('secChoiceKo');
+    document.getElementById('modalClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('shotImg').alt = t('modalAlt');
+    document.getElementById('promoChar').alt = t('promoCharAlt');
+    document.getElementById('verFoot').textContent = t('footerVersion', { ver: APP_VERSION });
+    document.getElementById('presetClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('saveAskClose').setAttribute('aria-label', t('modalClose'));
+    document.getElementById('slotNameInput').placeholder = t('slotNamePlaceholder');
+    // by id, not a pre-declared const: applyStaticText() runs (via the init
+    // sync below) before the preset section's consts exist further down —
+    // renderPresetList is a hoisted function declaration, so calling it
+    // here is safe regardless of where it's defined textually.
+    if (!document.getElementById('presetModal').hidden) renderPresetList();
+  }
+
+  function setLang(next) {
+    if (!LANGS.includes(next) || next === lang) return;
+    lang = next;
+    try { localStorage.setItem(LANG_KEY, lang); } catch { /* file:// */ }
+    document.documentElement.lang = lang;
+    document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+    document.body.classList.add(`lang-${lang}`);
+    for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+    applyStaticText();
+    render();
+  }
+  for (const b of $langBtns) b.addEventListener('click', () => setLang(b.dataset.lang));
+  // sync the DOM to whatever `lang` resolved to at startup (localStorage or
+  // the 'ko' default) — the markup is hardcoded to lang-ko, which is wrong
+  // whenever a returning visitor had picked ja/en last time
+  document.documentElement.lang = lang;
+  document.body.classList.remove('lang-ko', 'lang-ja', 'lang-en');
+  document.body.classList.add(`lang-${lang}`);
+  for (const b of $langBtns) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+  applyStaticText();
+
+  document.getElementById('onlyBtn').addEventListener('click', (e) => {
+    onlyMode = !onlyMode;
+    e.currentTarget.setAttribute('aria-pressed', String(onlyMode));
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    selected.clear();
+    buildTags.clear();
+    save();
+    render();
+    toast(t('toastReset'));
+  });
+
+  // ------------------------------------------------------------ image modal
+  // iOS Safari ignores <a download> and drops the file into Files rather than
+  // Photos, so the image is shown first: long-press gives "사진에 저장", and
+  // the Web Share sheet is offered where it exists.
+  const $modal = document.getElementById('modal');
+  const $shotImg = document.getElementById('shotImg');
+  const $dlBtn = document.getElementById('dlBtn');
+  const $copyImgBtn = document.getElementById('copyImgBtn');
+  const $shareImgBtn = document.getElementById('shareImgBtn');
+  const $modalHint = document.getElementById('modalHint');
+  let shotFile = null;
+
+  // `(hover: none)` alone misses some devices; maxTouchPoints is the reliable half
+  const isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  // Chrome/Edge/Safari support writing an image straight to the system
+  // clipboard; Firefox desktop does not (as of this writing). Feature-detect
+  // rather than sniff — the "공유" button (Web Share) was copying only the
+  // title text on platforms without file-sharing support, so this gives a
+  // second, more reliable path to an actual image.
+  const canCopyImage = !!(navigator.clipboard?.write && window.ClipboardItem);
+  window.__canCopyImage = canCopyImage;   // dev/test.html hook
+
+  function closeModal() {
+    $modal.hidden = true;
+    $shotImg.removeAttribute('src');
+    shotFile = null;
+    document.getElementById('shotBtn').focus();
+  }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  $modal.addEventListener('click', (e) => { if (e.target === $modal) closeModal(); });
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!$modal.hidden) closeModal();
+    else if (!document.getElementById('saveAsk').hidden) closeSaveAsk();
+    else if (!document.getElementById('presetModal').hidden) closePresetPanel();
+  });
+
+  // Renders the share image and opens the image modal. Called after the
+  // save-or-not prompt resolves (see openSaveAsk / the shotBtn handler).
+  async function doRenderImage() {
+    const btn = document.getElementById('shotBtn');
+    btn.disabled = true;
+    try {
+      const cv = await renderShareImage();
+      const name = `untar-control-${encode()}.png`;
+
+      // data URI, not blob: — Safari's long-press menu is far more reliable with it
+      $shotImg.src = cv.toDataURL('image/png');
+      $shotImg.width = cv.width / 2;
+
+      const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+      shotFile = new File([blob], name, { type: 'image/png' });
+
+      const canShare = navigator.canShare?.({ files: [shotFile] }) ?? false;
+      $copyImgBtn.hidden = !canCopyImage;
+      $shareImgBtn.hidden = !canShare;
+      $modalHint.textContent = isTouch ? t('hintTouch') : canCopyImage ? t('hintCopy') : t('hintPlain');
+
+      $modal.hidden = false;
+      document.getElementById('modalClose').focus();
+    } catch (err) {
+      toast(t('toastImgFail', { msg: err.message }));
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // "이미지 저장" first asks whether to save the build into a slot; the image
+  // is rendered either way (see the save-image prompt handlers below).
+  document.getElementById('shotBtn').addEventListener('click', () => {
+    if (!selected.size) return toast(t('toastPickFirst'));
+    openSaveAsk();
+  });
+
+  $dlBtn.addEventListener('click', () => {
+    if (!shotFile) return;
+    const url = URL.createObjectURL(shotFile);
+    const a = Object.assign(document.createElement('a'), { href: url, download: shotFile.name });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);   // Safari needs the URL alive past click()
+  });
+
+  $shareImgBtn.addEventListener('click', async () => {
+    if (!shotFile) return;
+    try {
+      await navigator.share({ files: [shotFile], title: t('shareTitle') });
+    } catch (err) {
+      if (err.name !== 'AbortError') toast(t('toastShareFail', { msg: err.message }));
+    }
+  });
+
+  $copyImgBtn.addEventListener('click', async () => {
+    if (!shotFile) return;
+    try {
+      // ClipboardItem needs the exact same MIME type as its key; shotFile is
+      // already 'image/png' (see the toBlob call above).
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': shotFile })]);
+      toast(t('toastCopyImgOk'));
+    } catch (err) {
+      toast(t('toastCopyImgFail', { msg: err.message }));
+    }
+  });
+
+  // ---------------------------------------------------------------- random
+  // Just for fun: roll a build that passes (sum >= 0) and respects EXCLUSIONS.
+  // Debuffs go in first (each independently, so the count varies), then
+  // perks are spent on greedily-but-randomly while affordable.
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function rollRandomBuild() {
+    const chosen = new Set();
+    const canAdd = (id) => !(CONFLICTS.get(id) ?? []).some(c => chosen.has(c.other.id));
+
+    const negIds = shuffled(BY_CAT.negative.map(m => m.id));
+    for (const id of negIds) if (Math.random() < 0.55 && canAdd(id)) chosen.add(id);
+    if (chosen.size === 0) chosen.add(negIds[0]);   // never roll a completely empty build
+
+    let balance = [...chosen].reduce((s, id) => s + BY_ID.get(id).value, 0);
+    for (const id of shuffled(BY_CAT.positive.map(m => m.id))) {
+      if (!canAdd(id)) continue;
+      const v = BY_ID.get(id).value;   // negative
+      if (balance + v >= 0 && Math.random() < 0.6) { chosen.add(id); balance += v; }
+    }
+    return chosen;
+  }
+
+  document.getElementById('randomBtn').addEventListener('click', () => {
+    selected.clear();
+    buildTags.clear();
+    rollRandomBuild().forEach(id => selected.add(id));
+    save();
+    render();
+    toast(t('toastRandomOk'));
+  });
+
+  // ------------------------------------------------------- presets / slots
+  // Three save slots live in localStorage (per browser). GitHub Pages has no
+  // server that could see an IP, so "per device" is as far as we can gate.
+  // The live selection is the throwaway "temp" slot (STORE_KEY, autosaved);
+  // only an explicit save into slot 1..3 is kept AND reported to the sheet.
+  const SLOTS_KEY = 'untar-control-slots';
+  const CLIENT_KEY = 'untar-control-cid';
+  const SLOT_COUNT = 3;
+
+  // Google Apps Script web-app URL — the stats collector. Leave empty to keep
+  // collection off. Setup: see docs/dev/sheet-collector.gs.
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzNWOKBWquO3fRhkWhRa8Z-rWDR7b1pts-wH9TcN6J1VK9AiuZyGgJWitCL9gz6RiS2/exec';
+
+  // A random, anonymous per-browser id so submissions can be grouped/deduped
+  // in the sheet without any login or IP.
+  function getClientId() {
+    let id = store.get(CLIENT_KEY);
+    if (!id) {
+      id = crypto?.randomUUID ? crypto.randomUUID()
+                              : 'c' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      store.set(CLIENT_KEY, id);
+    }
+    return id;
+  }
+
+  function getSlots() {
+    let arr = [];
+    try { const p = JSON.parse(store.get(SLOTS_KEY) || '[]'); if (Array.isArray(p)) arr = p; } catch { /* corrupt */ }
+    return Array.from({ length: SLOT_COUNT }, (_, i) => arr[i] || null);   // {code, ts} | null
+  }
+  const setSlots = (slots) => store.set(SLOTS_KEY, JSON.stringify(slots));
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  function slotName(ts) {
+    const d = new Date(ts);
+    return `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  // Best-effort, fire-and-forget. no-cors + text/plain skips the CORS preflight
+  // that an Apps Script web app can't answer; we neither see nor need a reply.
+  function sendToSheet(code, ts) {
+    // Only from the real (https) site — never from file:// (local dev + the
+    // headless test harness both run there and must not spam the sheet).
+    if (!SHEET_URL || location.protocol === 'file:') return;
+    const picked = SELECTABLE.filter(m => selected.has(m.id));
+    const body = JSON.stringify({
+      cid: getClientId(),
+      code,
+      ids: picked.map(m => m.id).join(','),
+      perks: picked.map(m => m.koName).join(', '),
+      sum: picked.reduce((s, m) => s + m.value, 0),
+      lang, ver: APP_VERSION, ts,
+    });
+    try {
+      fetch(SHEET_URL, { method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }).catch(() => {});
+    } catch { /* offline / blocked — stats are best-effort; the slot still saved */ }
+  }
+
+  const $presetModal = document.getElementById('presetModal');
+  const $presetList = document.getElementById('presetList');
+
+  function closePresetPanel() {
+    $presetModal.hidden = true;
+    document.getElementById('presetBtn').focus();
+  }
+
+  // Snapshot the current selection into slot n (0-based) and report it to the
+  // sheet. An optional custom name (local display only, never sent) falls back
+  // to the slot's existing name, then to the save time. Bails if nothing's on.
+  function saveToSlot(n, nameOverride) {
+    if (!selected.size) { toast(t('toastPickFirst')); return false; }
+    const ts = Date.now();
+    const code = encode();
+    const slots = getSlots();
+    const name = (nameOverride ?? '').trim() || slots[n]?.name || null;
+    slots[n] = { code, ts, name };
+    setSlots(slots);
+    sendToSheet(code, ts);   // name is a personal label, intentionally not sent
+    toast(t('toastSlotSaved', { name: name || slotName(ts) }));
+    if (!$presetModal.hidden) renderPresetList();
+    return true;
+  }
+
+  // Save from the panel: apply whatever's typed in the name field, then clear it.
+  const $slotNameInput = document.getElementById('slotNameInput');
+  function saveFromPanel(n) {
+    if (saveToSlot(n, $slotNameInput.value)) $slotNameInput.value = '';
+  }
+
+  function loadSlot(n) {
+    const slot = getSlots()[n];
+    if (!slot) return;
+    const s = decode(slot.code);
+    if (!s) return;
+    selected.clear();
+    buildTags.clear();
+    dropConflicts(s).forEach(id => selected.add(id));   // same guard as load()
+    save();
+    render();
+    closePresetPanel();
+    toast(t('toastSlotLoaded', { name: slotName(slot.ts) }));
+  }
+
+  function clearSlot(n) {
+    const slots = getSlots();
+    slots[n] = null;
+    setSlots(slots);
+    renderPresetList();
+    toast(t('toastSlotCleared'));
+  }
+
+  function renderPresetList() {
+    $presetList.replaceChildren();
+    getSlots().forEach((slot, i) => {
+      const row = el('div', 'preset-row');
+      const name = el('span', 'preset-name' + (slot ? '' : ' empty'));
+      name.append(el('span', 'slot-tag', t('slotLabel', { n: i + 1 })));
+      if (slot) {
+        name.append(document.createTextNode(slot.name || slotName(slot.ts)));
+        if (slot.name) name.append(el('span', 'slot-time', ' · ' + slotName(slot.ts)));
+      } else {
+        name.append(document.createTextNode(t('slotEmpty')));
+      }
+      row.append(name, el('span', 'spacer'));
+      if (slot) {
+        const load = el('button', 'tool', t('slotLoad'));
+        load.addEventListener('click', () => loadSlot(i));
+        const over = el('button', 'tool', t('slotOverwrite'));
+        over.addEventListener('click', () => saveFromPanel(i));
+        const clr = el('button', 'tool slot-clear', t('slotClear'));
+        clr.addEventListener('click', () => clearSlot(i));
+        row.append(load, over, clr);
+      } else {
+        const here = el('button', 'tool', t('slotSaveHere'));
+        here.addEventListener('click', () => saveFromPanel(i));
+        row.append(here);
+      }
+      $presetList.append(row);
+    });
+  }
+
+  document.getElementById('presetBtn').addEventListener('click', () => {
+    renderPresetList();
+    $presetModal.hidden = false;
+    document.getElementById('presetClose').focus();
+  });
+  document.getElementById('presetClose').addEventListener('click', closePresetPanel);
+  $presetModal.addEventListener('click', (e) => { if (e.target === $presetModal) closePresetPanel(); });
+
+  // Footer "현재 조합 저장": save into the first empty slot, else ask the user
+  // to overwrite one from the rows above.
+  document.getElementById('presetSaveBtn').addEventListener('click', () => {
+    if (!selected.size) return toast(t('toastPickFirst'));
+    const empty = getSlots().findIndex(s => !s);
+    if (empty === -1) return toast(t('toastNoEmptySlot'));
+    saveFromPanel(empty);
+  });
+  // Enter in the name field = the footer save
+  $slotNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('presetSaveBtn').click(); }
+  });
+
+  // ----------------------------------------------------- save-image prompt
+  const $saveAsk = document.getElementById('saveAsk');
+  const $saveAskP1 = document.getElementById('saveAskP1');
+  const $saveAskP2 = document.getElementById('saveAskP2');
+
+  function openSaveAsk() {
+    $saveAskP1.hidden = false;
+    $saveAskP2.hidden = true;
+    $saveAsk.hidden = false;
+    document.getElementById('askImgOnly').focus();
+  }
+  function closeSaveAsk() {
+    $saveAsk.hidden = true;
+    document.getElementById('shotBtn').focus();
+  }
+  document.getElementById('saveAskClose').addEventListener('click', closeSaveAsk);
+  $saveAsk.addEventListener('click', (e) => { if (e.target === $saveAsk) closeSaveAsk(); });
+  // "이미지만": skip saving, just render. "저장하고 이미지": pick a slot, save, render.
+  document.getElementById('askImgOnly').addEventListener('click', () => { closeSaveAsk(); doRenderImage(); });
+  document.getElementById('askSaveImg').addEventListener('click', () => {
+    const pick = document.getElementById('slotPick');
+    pick.replaceChildren();
+    getSlots().forEach((slot, i) => {
+      const label = slot ? slotName(slot.ts) : t('slotEmpty');
+      const btn = el('button', 'tool', `${t('slotLabel', { n: i + 1 })} · ${label}`);
+      btn.addEventListener('click', () => { saveToSlot(i); closeSaveAsk(); doRenderImage(); });
+      pick.append(btn);
+    });
+    $saveAskP1.hidden = true;
+    $saveAskP2.hidden = false;
+  });
+
+  document.getElementById('shareBtn').addEventListener('click', async () => {
+    const url = shareUrl();
+    try {
+      await navigator.clipboard.writeText(url);   // absent on file:// / http://
+      toast(t('toastLinkCopied'));
+    } catch {
+      prompt(t('toastLinkPrompt'), url);
+    }
+  });
+
+  addEventListener('hashchange', () => {
+    const code = new URLSearchParams(location.hash.slice(1)).get('b');
+    const s = code && decode(code);
+    if (!s) return;
+    selected.clear();
+    buildTags.clear();
+    dropConflicts(s).forEach(id => selected.add(id));   // same guard as load()
+    render();
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -6,6 +6,15 @@
 // the disclaimer that BSG may still rebalance the values before the season
 // opens, so treat every number here as pre-season.
 //
+// Verified 2026-11-20 against BSG's own English announcement image
+// (x.com/tarkov/status/2123390196154859630): all 62 entries match on both
+// point value and effect text.
+//
+// NOTE: a different Korean translation sheet (~1063x1480) circulating on
+// Discord/DCInside is an AI mistranslation — it renders 마감 기한 as "임무 기한
+// 3일 증가", puts 무능력자 at +6, and invents a perk that does not exist
+// ("다리 피로 +6"). Do not reconcile this file against that one.
+//
 // The sheet is Korean-only, so unlike season 1 this data set has no `ja`/`en`
 // text and the page ships without the language switch.
 //
@@ -84,8 +93,11 @@ const MODIFIERS = [
     ko: ['에너지 소모량이 20% 감소합니다.',
          '팔과 다리의 스태미나가 25포인트 증가합니다.'] },
   // The sheet's own title is clipped by the icon plate — only "거리세" is
-  // legible. Season 1 shipped the same effect as STREET TAX / "보호비", so the
-  // first syllable is almost certainly 길 ("길거리세" = street tax).
+  // legible. The effect is confirmed: BSG's English image lists it as
+  // STREET TAX (-2, "Once per week some Scavs pay you protection money").
+  // The Korean spelling is still inferred, though — season 1 shipped the same
+  // effect under a different name ("보호비"), so the hidden first syllable is
+  // our reading (길), not something we have seen printed.
   { id: 25, cat: 'positive', koName: '길거리세', koGuess: true, value: -2,
     ko: ['일주일에 한 번 일부 스캐브가 보호비를 지불합니다.'] },
   { id: 26, cat: 'positive', koName: '타르코프의 저격수', value: -2,

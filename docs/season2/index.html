@@ -21,14 +21,14 @@
 <meta name="twitter:image" content="https://njmg1.github.io/tarkov-modifier-selector/season2/assets/og.png">
 <style>
   :root {
-    --bg:          #0c0e0d;
-    --panel:       #161918;
-    --panel-2:     #1d211f;
-    --line:        #2b302e;
-    --line-hi:     #414744;
-    --text:        #d6dbd8;
-    --text-dim:    #7e8683;
-    --text-faint:  #565d5a;
+    --bg:          #0a0e13;
+    --panel:       #141a22;
+    --panel-2:     #1b2330;
+    --line:        #27313e;
+    --line-hi:     #3b4859;
+    --text:        #d4dae3;
+    --text-dim:    #7a8492;
+    --text-faint:  #545d6a;
 
     --pos:         #a9c46c;
     --pos-bg:      rgba(120, 152, 66, .10);
@@ -39,6 +39,10 @@
     --neg-bg:      rgba(150, 62, 55, .10);
     --neg-line:    #4a302d;
     --neg-line-hi: #8e4a43;
+
+    /* UN blue, sampled from the season-2 logo artwork. */
+    --un:          #3e86c1;
+    --un-hi:       #5aa3dc;
 
     --ok:          #79cf8a;
     --bad:         #e2584c;
@@ -83,7 +87,7 @@
   }
   .brand { display: flex; flex-direction: column; gap: 2px; }
   .brand b {
-    font: 700 20px/1 var(--sans); letter-spacing: .16em; color: #eef2ef;
+    font: 700 20px/1 var(--sans); letter-spacing: .16em; color: #eef1f6;
   }
   .brand b span { color: var(--text-faint); }
   .brand small { font-size: 10px; letter-spacing: .3em; color: var(--text-faint); }
@@ -113,7 +117,7 @@
   }
   .bar i {
     display: block; height: 100%; width: 0;
-    background: linear-gradient(90deg, #5f8a44, var(--pos-line-hi));
+    background: linear-gradient(90deg, var(--un), var(--un-hi));
     transition: width .22s cubic-bezier(.4,0,.2,1), background .18s;
   }
   .bar.over i { background: linear-gradient(90deg, #8e4a43, var(--bad)); }
@@ -138,7 +142,7 @@
   button.tool:hover { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
   button.tool:active { transform: translateY(1px); }
   button.tool[aria-pressed="true"] { color: var(--text); border-color: var(--line-hi); background: var(--panel-2); }
-  button.tool:focus-visible, .card:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  button.tool:focus-visible, .card:focus-visible { outline: 2px solid var(--un-hi); outline-offset: 2px; }
 
   /* ------------------------------------------------------------ aside */
   aside {
@@ -179,7 +183,7 @@
     cursor: pointer; transition: background .12s;
   }
   .pick:hover { background: var(--panel-2); }
-  .pick:focus-visible { outline: 2px solid #6e8a44; outline-offset: -2px; }
+  .pick:focus-visible { outline: 2px solid var(--un-hi); outline-offset: -2px; }
   .pick .icon { grid-area: 1 / 1; width: 20px; height: 20px; }
   .pick .nm {
     grid-area: 1 / 2;
@@ -237,7 +241,7 @@
   }
   .achv-build {
     font: 600 10px/1 var(--mono); color: var(--text-dim);
-    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    background: var(--panel-2, #1b2330); border: 1px solid var(--line);
     border-radius: 4px; padding: 5px 8px; cursor: pointer;
   }
   .achv-build:hover { color: var(--text); border-color: var(--text-dim); }
@@ -276,7 +280,7 @@
   /* rich hover card for achievements (rows + phone strip icons) */
   .achv-tip {
     position: fixed; z-index: 90; max-width: 360px;
-    background: var(--panel-2, #1c211a); border: 1px solid var(--line);
+    background: var(--panel-2, #1b2330); border: 1px solid var(--line);
     border-radius: 8px; padding: 12px 14px;
     box-shadow: 0 8px 28px rgba(0,0,0,.5);
     pointer-events: none;
@@ -294,7 +298,7 @@
   .promo {
     position: relative; overflow: hidden;
     margin-top: 40px; border: 1px solid var(--line); border-radius: 3px;
-    background: #14181a;
+    background: #11161d;
     display: flex; align-items: flex-end; gap: 20px; padding-right: 20px;
   }
   .promo::before {  /* same hatch as the in-game plate */
@@ -312,7 +316,7 @@
   }
   .promo-name {
     margin: 5px 0 3px;
-    font: 700 21px/1.2 var(--sans); letter-spacing: .02em; color: #eef2ef;
+    font: 700 21px/1.2 var(--sans); letter-spacing: .02em; color: #eef1f6;
   }
   .promo-name span {
     font: 500 12px/1 var(--mono); letter-spacing: .06em; color: var(--text-faint);
@@ -327,8 +331,8 @@
     border: 1px solid var(--line-hi); color: var(--text);
     background: var(--panel); transition: .14s;
   }
-  .promo-links a:hover { background: var(--panel-2); border-color: #5c6360; }
-  .promo-links a:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  .promo-links a:hover { background: var(--panel-2); border-color: #5a626d; }
+  .promo-links a:focus-visible { outline: 2px solid var(--un-hi); outline-offset: 2px; }
   .promo-links svg { width: 15px; height: 15px; fill: currentColor; flex: 0 0 auto; }
   .promo-links .yt:hover { border-color: #d0483c; color: #ef6a5e; }
 
@@ -347,7 +351,7 @@
   .lang-btn[aria-pressed="true"] {
     color: var(--pos); border-color: var(--pos-line-hi); background: rgba(120,152,66,.14);
   }
-  .lang-btn:focus-visible { outline: 2px solid #6e8a44; outline-offset: 2px; }
+  .lang-btn:focus-visible { outline: 2px solid var(--un-hi); outline-offset: 2px; }
   @media (max-width: 480px) {
     .lang-group { margin-left: 0; padding-left: 0; border-left: 0; flex-basis: 100%; }
   }
@@ -480,7 +484,7 @@
   .title h3 {
     /* nowrap: let the row wrap around it instead — a long koName next to a
        short title used to squeeze the title itself into two ragged lines */
-    margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e7ebe8;
+    margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e6eaf1;
     white-space: nowrap;
   }
   /* one title annotation exists per language; only the active one is shown.
@@ -507,7 +511,7 @@
     content: "·"; position: absolute; left: 2px; color: var(--text-faint);
   }
   .ko, .ja {
-    margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b9c0bc;
+    margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b8bfca;
     display: none;
   }
   body.lang-ko .ko { display: block; }
@@ -578,7 +582,7 @@
     /* the drag gesture drives this, not the browser's own pan/refresh handling */
     touch-action: none;
   }
-  .sheet-bar:focus-visible { outline: 2px solid #6e8a44; outline-offset: -3px; }
+  .sheet-bar:focus-visible { outline: 2px solid var(--un-hi); outline-offset: -3px; }
   /* A bare pill handle reads as "drag me" in mobile UX convention, which
      undersold that a plain tap works too. A bordered circular chevron reads
      as a normal tap/expand button instead — still draggable underneath. */
@@ -1462,7 +1466,7 @@
 
     // ---- header
     let y = 38;
-    c.fillStyle = '#eef2ef';
+    c.fillStyle = '#eef1f6';
     c.font = `700 23px ${SANS}`;
     c.fillText('UNTAR CONTROL', PAD, y);
     c.fillStyle = cssVar('--text-faint');
@@ -1523,7 +1527,7 @@
         c.drawImage(tinted(img, g.color, 30 * scale), PAD, top + 6, 30, 30);
 
         // Korean-only source: one title, no secondary label.
-        c.fillStyle = '#e7ebe8';
+        c.fillStyle = '#e6eaf1';
         c.font = `600 14px ${SANS}`;
         c.fillText(nameFor(m), TEXT_X, top + 14);
 
@@ -1548,7 +1552,7 @@
 
     // ---- footer: channel plug
     const fy = H - FOOT;
-    c.fillStyle = '#14181a';
+    c.fillStyle = '#11161d';
     c.fillRect(0, fy, W, FOOT);
     c.strokeStyle = cssVar('--line');
     c.beginPath(); c.moveTo(0, fy + .5); c.lineTo(W, fy + .5); c.stroke();
@@ -1558,7 +1562,7 @@
     c.drawImage(chr, PAD, H - ch, cw, ch);
 
     const tx = PAD + cw + 16;
-    c.fillStyle = '#eef2ef';
+    c.fillStyle = '#eef1f6';
     c.font = `700 17px ${SANS}`;
     c.fillText(t('brandName'), tx, fy + 30);
     c.fillStyle = cssVar('--text-faint');

@@ -911,9 +911,12 @@
 <div class="toast" id="toast"></div>
 <div class="achv-tip" id="achvTip" hidden></div>
 
-<script src="data.js"></script>
-<script src="icons.js"></script>
-<script src="../char.js"></script>
+<!-- GitHub Pages serves these with max-age=600, so for ten minutes after a
+     deploy a returning visitor can get new HTML against a stale data.js. The
+     stamp forces a matched pair — bump it whenever data.js or icons.js change. -->
+<script src="data.js?v=20261121"></script>
+<script src="icons.js?v=20261121"></script>
+<script src="../char.js?v=20261121"></script>
 <script>
 (() => {
   'use strict';

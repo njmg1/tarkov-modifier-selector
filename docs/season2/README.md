@@ -68,6 +68,12 @@ Escape from Tarkov 시즌 2 · UNTAR CONTROL의 특성(모디파이어) 62종을
 - 시즌 2 업적 목록은 아직 공개 전이라 업적 패널은 숨겨 두었습니다
   (`ACHIEVEMENTS`에 데이터를 넣으면 다시 나타납니다).
 
+## 자료를 고칠 때
+
+`data.js`나 `icons.js`를 고쳤으면 `index.html`의 `?v=` 스탬프를 같이 올려 주세요.
+GitHub Pages가 `max-age=600`으로 내려주기 때문에, 스탬프를 안 올리면 배포 직후
+10분 동안 재방문자가 **새 HTML + 옛 data.js** 조합을 받을 수 있습니다.
+
 ## 다시 만들기
 
 ```

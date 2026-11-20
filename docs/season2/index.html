@@ -1330,7 +1330,7 @@
       if (blocker) {
         const msg = node.querySelector('.block-msg');
         msg.replaceChildren(t(BLOCK_KEY[blocker.kind]));
-        msg.append(el('small', null, `${blocker.other.name} · ${axisFor(blocker.axis)}`));
+        msg.append(el('small', null, `${nameFor(blocker.other)} · ${axisFor(blocker.axis)}`));
         node.title = t('veilTitle', { name: nameFor(blocker.other) });
       } else {
         node.removeAttribute('title');

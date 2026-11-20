@@ -487,13 +487,6 @@
     margin: 0; font: 600 14px/1.25 var(--sans); letter-spacing: .07em; color: #e6eaf1;
     white-space: nowrap;
   }
-  /* one title annotation exists per language; only the active one is shown.
-     English has none — m.name (the h3) is already the game's own English title. */
-  .ko-name, .ja-name {
-    font-size: 12px; line-height: 1.25; color: var(--text-faint); white-space: nowrap;
-    display: none;
-  }
-  body.lang-ko .ko-name, body.lang-ja .ja-name { display: inline; }
   .val {
     font: 700 13px/1 var(--mono); font-variant-numeric: tabular-nums;
     margin-left: auto; flex: 0 0 auto; padding-left: 8px;
@@ -501,8 +494,8 @@
   .card.positive .val { color: var(--pos); }
   .card.negative .val { color: var(--neg); }
 
-  /* body text: exactly one of these three shows, matching the active language */
-  ul.desc { margin: 0; padding: 0; list-style: none; display: none; }
+  /* body text — season 2 has one language, so it is always shown */
+  ul.desc { margin: 0; padding: 0; list-style: none; }
   ul.desc li {
     font-size: 12.5px; line-height: 1.45; color: var(--text-dim);
     padding-left: 11px; position: relative;
@@ -510,13 +503,6 @@
   ul.desc li::before {
     content: "·"; position: absolute; left: 2px; color: var(--text-faint);
   }
-  .ko, .ja {
-    margin-top: 5px; font-size: 12.5px; line-height: 1.45; color: #b8bfca;
-    display: none;
-  }
-  body.lang-ko .ko { display: block; }
-  body.lang-ja .ja { display: block; }
-  body.lang-en ul.desc { display: block; }
 
   @media (max-width: 620px) {
     /* a wrapping title used to drag the value off the top-right corner */
@@ -1337,7 +1323,7 @@
         msg.append(el('small', null, `${nameFor(blocker.other)} · ${axisFor(blocker.axis)}`));
         node.title = t('veilTitle', { name: nameFor(blocker.other) });
       } else {
-        node.removeAttribute('title');
+        node.title = `${m.koName}\n` + m.ko.map(l => '· ' + l).join('\n');
       }
 
       // a perk is "unaffordable" if taking it would push you below zero

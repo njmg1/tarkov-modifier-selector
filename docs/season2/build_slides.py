@@ -24,10 +24,10 @@ UN_HI = (90, 163, 220)
 POS = (169, 196, 108)
 NEG = (217, 139, 129)
 
-MARGIN = 58
-CARD_H = 110
-GAP = 10
-FOOT_Y = 1028
+MARGIN = 50
+CARD_H = 96
+GAP = 9
+FOOT_Y = 1040
 
 
 def f(size, idx=REG):
@@ -73,27 +73,27 @@ def wrap(d, text, font, width):
 
 
 def header(im, d, title, accent, page=None, sub=None):
-    y = 52
-    d.rectangle((MARGIN, y, MARGIN + 7, y + 44), fill=accent)
-    d.text((MARGIN + 22, y - 2), title, font=f(40, BOLD), fill=TEXT)
+    y = 40
+    d.rectangle((MARGIN, y, MARGIN + 7, y + 42), fill=accent)
+    d.text((MARGIN + 22, y - 3), title, font=f(38, BOLD), fill=TEXT)
     if page:
-        pf = f(25, SEMI)
-        d.text((S - MARGIN - d.textlength(page, font=pf), y + 12), page,
+        pf = f(24, SEMI)
+        d.text((S - MARGIN - d.textlength(page, font=pf), y + 11), page,
                font=pf, fill=FAINT)
     if sub:
-        d.text((MARGIN + 22, y + 52), sub, font=f(22), fill=DIM)
-    return y + (86 if not sub else 116)
+        d.text((MARGIN + 22, y + 50), sub, font=f(22), fill=DIM)
+    return y + (75 if not sub else 105)
 
 
 def desc_lines(d, mod, w):
     out = []
     for ln in mod["ko"]:
-        out += wrap(d, "· " + ln, f(21), w - 118 - 96)
+        out += wrap(d, "· " + ln, f(21), w - 108 - 90)
     return out
 
 
 def card_h(d, mod, w):
-    return max(CARD_H, 54 + len(desc_lines(d, mod, w)) * 27 + 18)
+    return max(CARD_H, 46 + len(desc_lines(d, mod, w)) * 26 + 14)
 
 
 def card(im, d, x, y, w, mod, icons):
@@ -102,26 +102,26 @@ def card(im, d, x, y, w, mod, icons):
 
     ic = icons.get(mod["id"])
     if ic:
-        box = 74
+        box = 68
         ic2 = ic.resize((box, box), Image.LANCZOS)
         tint = Image.new("RGB", (box, box), (205, 213, 224))
-        im.paste(tint, (x + 22, y + (h - box) // 2), ic2)
+        im.paste(tint, (x + 20, y + (h - box) // 2), ic2)
 
-    tx = x + 118
+    tx = x + 108
     val = mod.get("value")
     name = mod["koName"] + (" ◆" if mod.get("koGuess") else "")
     nf = f(29, BOLD)
-    d.text((tx, y + 16), name, font=nf, fill=TEXT)
+    d.text((tx, y + 13), name, font=nf, fill=TEXT)
     if val is not None:
         col = NEG if val > 0 else POS
         vf = f(27, BOLD)
         label = f"+{val}" if val > 0 else f"{val}"
-        d.text((x + w - 26 - d.textlength(label, font=vf), y + 17), label,
+        d.text((x + w - 24 - d.textlength(label, font=vf), y + 14), label,
                font=vf, fill=col)
 
     df = f(21)
     for i, ln in enumerate(desc_lines(d, mod, w)):
-        d.text((tx, y + 54 + i * 27), ln, font=df, fill=DIM)
+        d.text((tx, y + 46 + i * 26), ln, font=df, fill=DIM)
     return h
 
 
@@ -165,18 +165,23 @@ def main():
                        "항상 적용 · 포인트 비용 없음"))
 
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
-    CAP = FOOT_Y - 24 - 138          # header bottom for a paged slide
+    CAP = FOOT_Y - 22 - 115          # header bottom for a paged slide
+
+    def fits(group):
+        w = S - MARGIN * 2
+        return sum(card_h(probe, m, w) + GAP for m in group) - GAP <= CAP
 
     def paginate(rows):
-        pages, cur, h = [], [], 0
-        for m in rows:
-            ch = card_h(probe, m, S - MARGIN * 2) + GAP
-            if cur and h + ch - GAP > CAP:
-                pages.append(cur); cur, h = [], 0
-            cur.append(m); h += ch
-        if cur:
-            pages.append(cur)
-        return pages
+        """Spread the rows evenly over the fewest pages that still fit — a
+        greedy fill leaves a last page holding one card."""
+        for n in range(1, len(rows) + 1):
+            base, extra, out, i = divmod(len(rows), n)[0], len(rows) % n, [], 0
+            for k in range(n):
+                size = base + (1 if k < extra else 0)
+                out.append(rows[i:i + size]); i += size
+            if all(fits(g) for g in out):
+                return out
+        raise SystemExit("한 장에 담기지 않는 카드가 있습니다")
 
     pos = paginate(by("positive"))
     for i, g in enumerate(pos):

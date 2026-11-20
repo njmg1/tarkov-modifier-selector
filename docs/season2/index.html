@@ -511,8 +511,10 @@
   ul.desc li + li { margin-top: 4px; }
   /* English original, under its Korean line */
   ul.desc .en-l {
+    /* subordinate to the Korean line, but still the authoritative wording:
+       --text-faint only reaches 2.7:1 on the panel, too low to read at 11px */
     display: block; margin-top: 1px;
-    font: 400 11px/1.4 var(--sans); color: var(--text-faint);
+    font: 400 11px/1.4 var(--sans); color: #6e7888;
   }
 
   @media (max-width: 620px) {

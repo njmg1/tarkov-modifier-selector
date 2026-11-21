@@ -76,7 +76,7 @@ Escape from Tarkov 시즌 2 · UNTAR CONTROL의 특성(모디파이어) 62종을
 
 ## 동시 선택 불가 (추정)
 
-시즌 2는 배타 목록을 공개하지 않았습니다. `data.js`의 `EXCLUSIONS` 22쌍은 전부
+시즌 2는 배타 목록을 공개하지 않았습니다. `data.js`의 `EXCLUSIONS` 23쌍은 전부
 `kind: 'inferred'` — 효과 설명이 정면으로 반대이거나, 시즌 1에서 같은 쌍이 공식
 배타로 확정됐던 경우만 넣었습니다. UI에도 "추정"으로 표시됩니다.
 

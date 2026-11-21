@@ -354,6 +354,11 @@ const EXCLUSIONS = [
   // season 1 made these official too: 다식증 x 젊음 (both cut energy drain)
   // and 인격적 결함 x 세 번째 다리 — the one handicap-vs-handicap pair.
   { a: 33, b: 24, kind: 'inferred', axis: { ko: '에너지 소모', ja: 'エネルギー消費', en: 'Energy drain' } },
+  // Season 1's official 1.1.0 list blocks this pair too, with no visible
+  // shared stat (its own label was just "official rule"). We carry it over
+  // because our rule is to inherit season 1's confirmed pairs, not to
+  // second-guess them — it was the one official pair we had missed.
+  { a: 33, b: 51, kind: 'inferred', axis: { ko: '시즌 1 공식 규칙', ja: 'シーズン1の公式ルール', en: "Season 1's official rule" } },
   { a: 56, b: 61, kind: 'inferred', axis: { ko: '상인 거래 가격', ja: 'トレーダー価格', en: 'Trader prices' } },
   // movement perks (season 1 made MARATHON x SPRINTER official)
   { a: 19, b: 29, kind: 'inferred', axis: { ko: '이동 계열 퍽', ja: '移動系パーク', en: 'Movement perks' } },

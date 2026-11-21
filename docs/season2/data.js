@@ -78,7 +78,7 @@ const MODIFIERS = [
     en: ['Skill progression speed is increased by 30% when playing solo'],
     ja: ['ソロでプレイしている間、スキルの習熟速度が30%増加'] },
   { id: 9, cat: 'positive', koName: '장전 및 조치', enName: 'TAP, RACK, ROLL', jaName: 'タップ・ラック・ロール', value: -1,
-    ko: ['문제 해결 스킬 레벨 40으로 시작합니다.',
+    ko: ['무기 고장 해결 스킬 레벨 40으로 시작합니다. (Troubleshooting)',
          '무기 오작동을 해결할 때 더 이상 점검이 필요하지 않습니다.'],
     en: ['Start with the Troubleshooting skill at level 40',
          'Malfunction clearing no longer requires inspection'],

@@ -229,7 +229,7 @@ const MODIFIERS = [
     ko: ['상인을 통한 아이템 수리가 불가능합니다.'],
     en: ['Items cannot be repaired through traders'],
     ja: ['トレーダーでのアイテム修理ができない'] },
-  { id: 41, cat: 'negative', koName: '가벼운 입', enName: 'LOOSE TONGUE', jaName: '口が軽い', value: 2,
+  { id: 41, cat: 'negative', koName: '가벼운 입 (뚜렛)', enName: 'LOOSE TONGUE', jaName: '口が軽い', value: 2,
     ko: ['캐릭터가 어떤 행동을 한 뒤 가끔 음성 대사를 내뱉습니다.'],
     en: ['Your character occasionally does a voice line after performing any action'],
     ja: ['何か行動をするたび、キャラクターが時折ボイスを発する'] },

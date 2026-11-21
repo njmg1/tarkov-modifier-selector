@@ -315,7 +315,7 @@ const MODIFIERS = [
     ko: ['플리마켓에서 다른 플레이어와 거래할 수 없습니다.'],
     en: ['Trading with players on the Flea Market is disabled'],
     ja: ['フリーマーケットでの他プレイヤーとの取引ができない'] },
-  { id: 61, cat: 'negative', koName: '다리 사이의 다리', enName: 'THIRD LEG', jaName: '三本目の足', value: 1,
+  { id: 61, cat: 'negative', koName: '다리 사이의 다리 (나 오늘 장사 안해)', enName: 'THIRD LEG', jaName: '三本目の足', value: 1,
     ko: ['이동 속도가 2% 감소합니다.',
          '테라피스트에게서 아이템을 5% 저렴하게 구매할 수 있습니다.'],
     en: ['Movement speed is decreased by 2%',

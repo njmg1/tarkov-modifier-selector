@@ -55,6 +55,12 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
+  /* The header is sticky at top:0, so anything the browser scrolls "into
+     view" by the minimum amount lands underneath it and reads as invisible —
+     most visibly with Ctrl+F, which would find a card and show you nothing.
+     --hdr-h is kept in sync with the real header height from JS, because the
+     toolbar wraps to a second row in 日本語/English. */
+  html { scroll-padding-top: calc(var(--hdr-h, 72px) + 14px); }
   body {
     background: var(--bg);
     color: var(--text);
@@ -1727,6 +1733,16 @@
   }
 
   // ---------------------------------------------------------------- i18n
+  // Keep --hdr-h on <html> matching the sticky header, so scroll-padding-top
+  // (see the rule near the top of the stylesheet) always clears it.
+  const $hdr = document.querySelector('header');
+  const syncHeaderHeight = () =>
+    document.documentElement.style.setProperty(
+      '--hdr-h', `${Math.round($hdr.getBoundingClientRect().height)}px`);
+  if (window.ResizeObserver) new ResizeObserver(syncHeaderHeight).observe($hdr);
+  else addEventListener('resize', syncHeaderHeight);
+  syncHeaderHeight();
+
   const $langBtns = [...document.querySelectorAll('.lang-btn')];
 
   // Every static (non-selection-dependent) piece of chrome text lives here,

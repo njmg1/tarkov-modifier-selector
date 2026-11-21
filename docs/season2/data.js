@@ -217,7 +217,7 @@ const MODIFIERS = [
     ja: ['Audentes fortuna iuvat!(幸運は勇者に味方する!)'] },
 
   // -------------------------------------------------------- personal negative
-  { id: 38, cat: 'negative', koName: '외향적', enName: 'EXTROVERT', jaName: '外向的', value: 3,
+  { id: 38, cat: 'negative', koName: '외향적 (외향인, 인싸)', enName: 'EXTROVERT', jaName: '外向的', value: 3,
     ko: ['혼자 플레이할 때 스킬 숙련도 획득 속도가 30% 감소합니다.'],
     en: ['Skill progression speed is decreased by 30% when playing solo'],
     ja: ['ソロでプレイしている間、スキルの習熟速度が30%減少'] },
@@ -276,7 +276,7 @@ const MODIFIERS = [
     ko: ['팔과 다리의 스태미나가 20포인트 감소합니다.'],
     en: ['Arm and leg stamina is reduced by 20 points'],
     ja: ['腕と脚のスタミナが20ポイント減少'] },
-  { id: 52, cat: 'negative', koName: '아고, 아파라!', enName: 'WELL THAT HURT!', jaName: 'マジ痛い;;', value: 1,
+  { id: 52, cat: 'negative', koName: '꽤 아프겠네 (개아픔)', enName: 'WELL THAT HURT!', jaName: 'マジ痛い;;', value: 1,
     ko: ['모든 의료 키트의 자원 소모량이 33% 증가합니다.'],
     en: ['All medkit uses consume 33% more resource'],
     ja: ['すべての治療キットの消費量が33%増加'] },
@@ -288,7 +288,7 @@ const MODIFIERS = [
     ko: ['수분 소모량이 25% 증가합니다.'],
     en: ['Hydration is consumed 25% faster'],
     ja: ['水分消費量が25%増加'] },
-  { id: 55, cat: 'negative', koName: '만성 피로 증후군', enName: 'CHRONIC FATIGUE SYNDROME', jaName: '慢性疲労症候群', value: 1,
+  { id: 55, cat: 'negative', koName: '만성 피로', enName: 'CHRONIC FATIGUE SYNDROME', jaName: '慢性疲労症候群', value: 1,
     ko: ['에너지 소모량이 20% 증가합니다.'],
     en: ['Energy is consumed 20% faster'],
     ja: ['エネルギー消費が20%増加'] },

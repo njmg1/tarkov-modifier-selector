@@ -920,9 +920,9 @@
 <!-- GitHub Pages serves these with max-age=600, so for ten minutes after a
      deploy a returning visitor can get new HTML against a stale data.js. The
      stamp forces a matched pair — bump it whenever data.js or icons.js change. -->
-<script src="data.js?v=20261121b"></script>
-<script src="icons.js?v=20261121b"></script>
-<script src="../char.js?v=20261121b"></script>
+<script src="data.js?v=20261121c"></script>
+<script src="icons.js?v=20261121c"></script>
+<script src="../char.js?v=20261121c"></script>
 <script>
 (() => {
   'use strict';
@@ -1086,24 +1086,12 @@
 
   const BLOCK_KEY = { official: 'veilOfficial', inferred: 'veilInferred' };
 
-  // The ◆ flags an inferred KOREAN spelling, so it rides on whichever element
-  // is currently showing the Korean name — the h3 in ko, the chip in en.
-  const GUESS_NOTE = {
-    ko: '효과와 영문 명칭은 공식 자료로 확인됐지만, 커뮤니티 자료에서 한글 제목의 첫 글자가 아이콘에 가려져 한글 표기만 추정입니다.',
-    en: "The effect and the English name are confirmed; only the Korean spelling is a guess, because the first syllable of the title is hidden behind the icon in the community sheet.",
-  };
   function applyCardLang() {
     for (const m of MODIFIERS) {
       const node = cards.get(m.id);
       if (!node) continue;
       node._h3.textContent = nameFor(m);
       node._alt.textContent = altName(m);
-      // Japanese shows no Korean name at all, so the ◆ has nothing to mark.
-      if (m.koGuess && lang !== 'ja') {
-        const mark = el('span', 'trunc', ' ◆');
-        mark.title = GUESS_NOTE[lang] ?? GUESS_NOTE.ko;
-        (lang === 'en' ? node._alt : node._h3).append(mark);
-      }
       node._ul.replaceChildren(...bodyOf(m).map(line => el('li', null, line)));
     }
   }
@@ -1187,7 +1175,8 @@
 
   // THIRD LEG's display name carries a long quip in ko/ja — too long for the
   // requirement lists here, so cut at the quote.
-  const shortName = (m) => nameFor(m).split(' "')[0].split('「')[0];
+  const shortName = (m) =>
+    nameFor(m).split(' "')[0].split('「')[0].split(' (')[0];
 
   function achvCondText(a) {
     const c = a.cond;

@@ -1957,6 +1957,11 @@
 
   // Google Apps Script web-app URL — the stats collector. Leave empty to keep
   // collection off. Setup: see docs/dev/sheet-collector.gs.
+  //
+  // NOTE: this is the SAME endpoint season 1 posts to, so both seasons land in
+  // one sheet. The collector writes a fixed set of columns and has no season
+  // field, so we tag the version column ('S2 2.0' vs season 1's bare '0.25')
+  // to keep the two sets separable without redeploying the script.
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzNWOKBWquO3fRhkWhRa8Z-rWDR7b1pts-wH9TcN6J1VK9AiuZyGgJWitCL9gz6RiS2/exec';
 
   // A random, anonymous per-browser id so submissions can be grouped/deduped
@@ -1995,9 +2000,12 @@
       cid: getClientId(),
       code,
       ids: picked.map(m => m.id).join(','),
-      perks: picked.map(m => m.koName).join(', '),
+      // English names, same as season 1: a stable aggregation key that does
+      // not move when the viewer switches language or a translation is fixed.
+      perks: picked.map(m => m.enName).join(', '),
       sum: picked.reduce((s, m) => s + m.value, 0),
-      lang, ver: APP_VERSION, ts,
+      season: 2,                     // ignored by the current collector; for a future column
+      lang, ver: `S2 ${APP_VERSION}`, ts,
     });
     try {
       fetch(SHEET_URL, { method: 'POST', mode: 'no-cors',

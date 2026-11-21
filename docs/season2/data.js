@@ -137,7 +137,7 @@ const MODIFIERS = [
     ko: ['기계식 열쇠와 키카드 사용 시 내구도가 감소하지 않을 확률이 50%입니다.'],
     en: ['Mechanical keys and keycards have a 50% chance not to lose durability when used'],
     ja: ['機械式の鍵とキーカードが50%の確率で耐久度を消費しない'] },
-  { id: 21, cat: 'positive', koName: '수색대 (수풀 은신)', enName: 'BUSHBORNE', jaName: 'ブッシュボーン', value: -4,
+  { id: 21, cat: 'positive', koName: '부시본 (수풀 은신)', enName: 'BUSHBORNE', jaName: 'ブッシュボーン', value: -4,
     ko: ['식생 속을 걸을 때 소음이 75% 감소하며 이동 속도 감소 효과가 발생하지 않습니다.'],
     en: ['Walking in vegetation generates 75% less noise and doesn\'t inflict movement slowdown'],
     ja: ['植生の中を歩く際の音が75%減少し、移動速度の低下も発生しない'] },

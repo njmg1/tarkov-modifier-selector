@@ -108,7 +108,13 @@
   }
 
   /* ------------------------------------------------------------ meter */
-  .meter { flex: 1 1 380px; min-width: 300px; }
+  /* Flex decides whether to wrap from each item's flex-basis, before any
+     shrinking. At 380px the basis pushed brand+meter+verdict+tools past the
+     1500px row in 日本語/English (their toolbar labels are longer), so the
+     toolbar dropped to a second row and the header doubled in height — while
+     한국어 stayed on one line. 300px keeps all three on one row; the meter
+     still shrinks to ~315px there, which the bar and labels handle fine. */
+  .meter { flex: 1 1 300px; min-width: 240px; }
   .meter-top {
     display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px;
     font: 500 12px/1 var(--sans); letter-spacing: .06em; color: var(--text-dim);
